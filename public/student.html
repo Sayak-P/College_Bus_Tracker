@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student - Live Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        #map { height: 100vh; width: 100%; }
+        body { margin: 0; padding: 0; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        const socket = io();
+        
+        // Initialize map centered on ITER, Bhubaneswar
+        const map = L.map('map').setView([20.2497, 85.8012], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // This will be the bus icon on the map
+        let busMarker = L.marker([20.2497, 85.8012]).addTo(map).bindPopup("College Bus");
+
+        // Listen for location updates from the server
+        socket.on('receive-location', (data) => {
+            console.log("Bus moved to:", data);
+            const { lat, lng } = data;
+            
+            // Update the marker position instantly
+            busMarker.setLatLng([lat, lng]);
+            
+            // Optional: Smoothly follow the bus
+            // map.setView([lat, lng]); 
+        });
+    </script>
+</body>
+</html>
