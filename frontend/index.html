@@ -386,6 +386,29 @@
         #google-step2 { display: none; }
         .welcome-name { color: var(--accent-gold); font-weight: 700; font-size: 15px; margin-bottom: 16px; display: block; }
 
+        /* Auth Tabs */
+        .auth-tabs {
+            display: flex; gap: 6px; margin-bottom: 20px;
+            background: rgba(255,255,255,0.04); padding: 4px; border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        body.light-mode .auth-tabs { background: #f1f5f9; }
+        .auth-tab-btn {
+            flex: 1; padding: 9px 8px; border: none; background: transparent;
+            color: var(--text-muted); font-size: 12px; font-weight: 600;
+            border-radius: 8px; cursor: pointer; transition: 0.2s; font-family: 'Inter', sans-serif;
+        }
+        .auth-tab-btn.active {
+            background: var(--accent-gold); color: #000; font-weight: 700;
+        }
+        body.light-mode .auth-tab-btn.active { background: #ea580c; color: #fff; }
+
+        .guest-link {
+            display: inline-block; margin-top: 14px; font-size: 12px; color: var(--accent-gold);
+            text-decoration: none; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .guest-link:hover { text-decoration: underline; opacity: 0.9; }
+
         .driver-link { display: block; margin-top: 16px; font-size: 11px; color: var(--text-muted); text-decoration: none; }
         .driver-link:hover { color: var(--accent-gold); }
         .driver-link span { color: var(--accent-gold); font-weight: 700; }
@@ -646,33 +669,56 @@
         <div class="modal-content">
             <div class="close-btn" onclick="closeModal()">&times;</div>
 
-            <!-- STEP 1: Google Sign-In -->
-            <div id="google-step1">
-                <h2>Student Portal</h2>
-                <p class="modal-subtitle">Sign in to access live bus tracking</p>
+            <h2>Student Portal</h2>
+            <p class="modal-subtitle">Access live bus tracking and route schedules</p>
 
-                <button class="google-btn" id="google-signin-btn">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-                    Sign in with Google
-                </button>
-
-                <a href="#" onclick="closeModal(); openDriverModal(); return false;" class="driver-link">Are you a driver? <span>Login here →</span></a>
+            <!-- Auth Tabs -->
+            <div class="auth-tabs">
+                <button class="auth-tab-btn active" id="tab-login" onclick="switchStudentTab('login')">Sign In</button>
+                <button class="auth-tab-btn" id="tab-register" onclick="switchStudentTab('register')">Register</button>
+                <button class="auth-tab-btn" id="tab-google" onclick="switchStudentTab('google')">Google</button>
             </div>
 
-            <!-- STEP 2: Registration Number (first-time users) -->
-            <div id="google-step2">
-                <h2>Almost There!</h2>
-                <span class="welcome-name" id="google-welcome"></span>
-                <p class="modal-subtitle">Just a couple more details to complete your profile</p>
+            <!-- PANEL 1: Direct Student Login -->
+            <div id="panel-login">
+                <input type="text" id="s-login-reg" placeholder="Registration Number (e.g. 24E116D58)" maxlength="15" style="text-transform: uppercase;">
+                <input type="password" id="s-login-pass" placeholder="Password">
+                <button class="auth-btn" onclick="attemptStudentDirectLogin()">Sign In as Student</button>
+            </div>
 
-                <input type="text" id="g-reg-number" placeholder="Registration Number (e.g., 24E116D58)" maxlength="15" style="text-transform: uppercase;">
-                <input type="text" id="g-address" placeholder="Home Address (for bus stop matching)">
+            <!-- PANEL 2: Direct Student Register -->
+            <div id="panel-register" style="display: none;">
+                <input type="text" id="s-reg-name" placeholder="Full Name">
+                <input type="text" id="s-reg-number" placeholder="Registration Number (e.g. 24E116D58)" maxlength="15" style="text-transform: uppercase;">
+                <input type="text" id="s-reg-address" placeholder="Home Address (e.g. Khandagiri)">
+                <input type="password" id="s-reg-pass" placeholder="Password (min 6 characters)">
+                <button class="auth-btn" onclick="attemptStudentDirectRegister()">Create Account</button>
+            </div>
 
-                <button class="auth-btn" onclick="completeGoogleRegistration()">Complete Registration</button>
+            <!-- PANEL 3: Google Sign-In -->
+            <div id="panel-google" style="display: none;">
+                <div id="google-step1">
+                    <div id="google-signin-btn" style="display: flex; justify-content: center; margin: 10px 0;"></div>
+                </div>
+
+                <!-- STEP 2: Registration Number (first-time Google users) -->
+                <div id="google-step2" style="display: none;">
+                    <span class="welcome-name" id="google-welcome"></span>
+                    <input type="text" id="g-reg-number" placeholder="Registration Number" maxlength="15" style="text-transform: uppercase;">
+                    <input type="text" id="g-address" placeholder="Home Address">
+                    <button class="auth-btn" onclick="completeGoogleRegistration()">Complete Registration</button>
+                </div>
+            </div>
+
+            <!-- Guest bypass -->
+            <div style="margin-top: 14px;">
+                <a class="guest-link" onclick="guestStudentAccess()">🚀 Explore Live Tracking as Guest Student →</a>
             </div>
 
             <div class="auth-error" id="auth-error"></div>
             <div class="auth-success" id="auth-success"></div>
+
+            <a href="#" onclick="closeModal(); openDriverModal(); return false;" class="driver-link">Are you a driver? <span>Login here →</span></a>
         </div>
     </div>
 
@@ -932,7 +978,94 @@
             if (e.key === 'Enter') attemptDriverLogin();
         });
 
-        // ===== STUDENT AUTH =====
+        // ===== STUDENT AUTH TABS & HANDLERS =====
+        function switchStudentTab(tab) {
+            document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+            document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+            document.getElementById('tab-google').classList.toggle('active', tab === 'google');
+
+            document.getElementById('panel-login').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('panel-register').style.display = tab === 'register' ? 'block' : 'none';
+            document.getElementById('panel-google').style.display = tab === 'google' ? 'block' : 'none';
+
+            document.getElementById('auth-error').style.display = 'none';
+            document.getElementById('auth-success').style.display = 'none';
+        }
+
+        async function attemptStudentDirectLogin() {
+            const regNumber = document.getElementById('s-login-reg').value.trim().toUpperCase();
+            const password = document.getElementById('s-login-pass').value;
+
+            if (!regNumber || !password) {
+                return showError('Please enter both Registration Number and Password');
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/student/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ regNumber, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('studentToken', data.token);
+                    localStorage.setItem('studentName', data.name);
+                    localStorage.setItem('studentReg', data.regNumber);
+                    localStorage.setItem('studentAddress', data.address);
+                    showSuccess(`Welcome back, ${data.name}! Redirecting...`);
+                    setTimeout(() => { window.location.href = `student/student.html?id=${data.regNumber}`; }, 600);
+                } else {
+                    showError(data.message || 'Invalid Registration Number or Password');
+                }
+            } catch (err) {
+                showError('Cannot connect to server. Please try again.');
+            }
+        }
+
+        async function attemptStudentDirectRegister() {
+            const name = document.getElementById('s-reg-name').value.trim();
+            const regNumber = document.getElementById('s-reg-number').value.trim().toUpperCase();
+            const address = document.getElementById('s-reg-address').value.trim();
+            const password = document.getElementById('s-reg-pass').value;
+
+            if (!name || !regNumber || !address || !password) {
+                return showError('All fields are required');
+            }
+            if (password.length < 6) {
+                return showError('Password must be at least 6 characters');
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/student/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, regNumber, address, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('studentToken', data.token);
+                    localStorage.setItem('studentName', data.name);
+                    localStorage.setItem('studentReg', data.regNumber);
+                    localStorage.setItem('studentAddress', data.address);
+                    showSuccess('Account registered successfully! Redirecting...');
+                    setTimeout(() => { window.location.href = `student/student.html?id=${data.regNumber}`; }, 800);
+                } else {
+                    showError(data.message || 'Registration failed');
+                }
+            } catch (err) {
+                showError('Cannot connect to server. Please try again.');
+            }
+        }
+
+        function guestStudentAccess() {
+            localStorage.setItem('studentToken', 'guest-token-' + Date.now());
+            localStorage.setItem('studentName', 'Guest Student');
+            localStorage.setItem('studentReg', 'ITER2026GUEST');
+            localStorage.setItem('studentAddress', 'ITER Campus');
+            showSuccess('Connecting as Guest Student...');
+            setTimeout(() => { window.location.href = 'student/student.html?id=ITER2026GUEST'; }, 400);
+        }
+
         function showError(msg) {
             const el = document.getElementById('auth-error');
             el.textContent = msg; el.style.display = 'block';
