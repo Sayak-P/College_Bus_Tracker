@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusFlow - Arrivals</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared.css">
+    <style>
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 60px 40px; }
+
+        /* Header block */
+        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
+        .ph-subtitle { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 15px; display: block; }
+        .ph-title { font-size: 4rem; font-weight: 800; line-height: 1; letter-spacing: -2px; margin: 0; }
+        .ph-title span { color: var(--text-muted); font-family: 'Playfair Display', serif; font-style: italic; font-weight: 600; display: block; }
+        .ph-desc { font-size: 1rem; color: var(--text-muted); line-height: 1.6; max-width: 450px; margin-top: 20px; }
+        
+        .live-btn {
+            background: var(--surface-color); border: 1px solid var(--border-color);
+            padding: 10px 20px; border-radius: 30px; font-size: 12px; font-weight: 700;
+            color: var(--text-muted); display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.3s;
+        }
+        .live-btn:hover { background: rgba(255,255,255,0.05); color: white; }
+        .live-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* Dashboard Grid */
+        .dashboard-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; margin-bottom: 40px; }
+
+        /* Left Main Card */
+        .hero-card {
+            background: var(--surface-color); border: 1px solid var(--border-color);
+            border-radius: 24px; padding: 40px; position: relative; overflow: hidden;
+            background-image: radial-gradient(circle at right top, rgba(252, 211, 77, 0.05) 0%, transparent 50%);
+        }
+        
+        .hc-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .route-badge { 
+            background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 6px; 
+            font-size: 10px; font-weight: 700; letter-spacing: 1px; margin-right: 12px;
+        }
+        .route-name { font-size: 2.2rem; font-weight: 700; margin: 15px 0 0 0; }
+        
+        .eta-block { text-align: right; }
+        .eta-block h1 { font-size: 5rem; font-weight: 800; margin: 0; line-height: 0.9; letter-spacing: -2px; color: #fff; }
+        .eta-block p { font-size: 12px; color: var(--text-muted); margin: 10px 0 0 0; font-weight: 500; }
+
+        .occupancy-hero { margin-top: 50px; }
+        .occ-flex { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--text-main); margin-bottom: 10px; }
+        .occ-track { height: 6px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+        .occ-fill { height: 100%; background: var(--accent-gold); border-radius: 4px; transition: width 0.5s; }
+
+        .hc-footer { display: flex; gap: 40px; margin-top: 50px; }
+        .hf-item h4 { font-size: 10px; font-weight: 800; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 1.5px; margin: 0 0 8px 0; }
+        .hf-item p { font-size: 14px; font-weight: 600; margin: 0; }
+
+        /* Mini chips under hero card */
+        .chips-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .chip {
+            background: var(--surface-color); border: 1px solid var(--border-color);
+            border-radius: 40px; padding: 16px 24px; display: flex; align-items: center; gap: 15px;
+        }
+        .chip-icon { width: 30px; height: 30px; background: rgba(252,211,77,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent-gold); }
+        .chip-text h5 { margin: 0; font-size: 9px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .chip-text p { margin: 4px 0 0 0; font-size: 13px; font-weight: 700; }
+
+        /* Right Side Cards */
+        .side-cards { display: flex; flex-direction: column; gap: 20px; }
+        
+        .side-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 20px; padding: 25px; cursor: pointer; transition: 0.3s; }
+        .side-card:hover { border-color: rgba(252, 211, 77, 0.3); transform: translateY(-2px); }
+        .sc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
+        .sc-route { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 800; display: block; margin-bottom: 8px; }
+        .sc-name { font-size: 1.2rem; font-weight: 700; margin: 0; }
+        .sc-eta { font-size: 1.8rem; font-weight: 800; margin: 0; }
+
+        .sc-occ-flex { display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .sc-occ-track { height: 4px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+        
+        .info-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 30px; color: var(--text-muted); font-size: 12px; line-height: 1.6; }
+
+        /* Loading State */
+        .loading-spinner { display: flex; justify-content: center; align-items: center; padding: 60px; font-size: 14px; color: var(--text-muted); gap: 12px; }
+        .spinner { width: 20px; height: 20px; border: 3px solid var(--border-color); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-msg { text-align: center; padding: 40px; color: var(--danger); font-weight: 600; }
+
+        /* Lower Section */
+        .bottom-section { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 80px; align-items: center; }
+        
+        .img-block { 
+            height: 350px; border-radius: 24px; overflow: hidden; position: relative;
+        }
+        .img-block img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; mix-blend-mode: luminosity; }
+        .img-btn { 
+            position: absolute; bottom: 20px; left: 20px; background: rgba(252, 211, 77, 0.9); color: #000;
+            padding: 8px 16px; border-radius: 30px; font-size: 11px; font-weight: 700; box-shadow: 0 10px 20px rgba(0,0,0,0.5); cursor: pointer;
+        }
+
+        .text-block h2 { font-size: 2.2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 20px; }
+        .text-block p { color: var(--text-muted); line-height: 1.7; font-size: 1.05rem; margin-bottom: 40px; }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
+        .stat-item h3 { font-size: 2.5rem; font-weight: 800; line-height: 1; margin: 0 0 10px 0; }
+        .stat-item p { font-size: 10px; font-weight: 800; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 1px; margin: 0; }
+
+        body.light-mode .hero-card, body.light-mode .chip, body.light-mode .side-card { background: #ffffff; border-color: rgba(0,0,0,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        body.light-mode h1, body.light-mode .route-name, body.light-mode .chip-text p, body.light-mode .sc-name, body.light-mode .sc-eta, body.light-mode .text-block h2, body.light-mode .stat-item h3 { color: #000; }
+        body.light-mode .ph-title { color: #c2410c; }
+        body.light-mode .eta-block h1 { color: #000; }
+    </style>
+</head>
+<body>
+    <script>if (localStorage.getItem("theme") === "light") document.body.classList.add("light-mode");</script>
+
+    <nav>
+        <div class="logo">CampusFlow</div>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="student.html">Tracking</a>
+            <a href="routes.html">Routes</a>
+            <a href="nearby.html">Nearby</a>
+            <a href="arrivals.html" class="active">Arrivals</a>
+        </div>
+        <div class="nav-actions" id="nav-actions">
+            <!-- Auth injected via JS -->
+        </div>
+    </nav>
+    <script>
+        if (!localStorage.getItem('studentToken')) {
+            window.location.href = '../index.html';
+        } else {
+            document.addEventListener('DOMContentLoaded', () => {
+                const navActions = document.getElementById('nav-actions');
+                navActions.innerHTML = `
+                    <a href="#" class="btn-nav-gold" style="background: var(--danger); color: #fff; padding: 8px 16px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 700;" onclick="logoutHandler(event)">Logout</a>
+                `;
+            });
+        }
+        function logoutHandler(e) {
+            e.preventDefault();
+            localStorage.removeItem('studentToken');
+            localStorage.removeItem('studentName');
+            localStorage.removeItem('studentReg');
+            localStorage.removeItem('studentAddress');
+            window.location.href = '../index.html';
+        }
+    </script>
+
+    <div class="container">
+        
+        <div class="page-header">
+            <div>
+                <span class="ph-subtitle">Live Monitoring</span>
+                <h1 class="ph-title">CampusFlow <br><span>Exchange</span></h1>
+                <p class="ph-desc">Real-time arrivals for ITER Campus. Monitoring transit across the Bhubaneswar network.</p>
+            </div>
+            <button class="live-btn" id="live-status-btn"><div class="live-dot" id="live-dot"></div> <span id="live-status-text">Connecting...</span></button>
+        </div>
+
+        <!-- Dynamic Content Area -->
+        <div id="arrivals-content">
+            <div class="loading-spinner"><div class="spinner"></div> Loading live arrivals data...</div>
+        </div>
+
+        <!-- Lower Section -->
+        <div class="bottom-section">
+            <div class="img-block">
+                <img src="https://images.unsplash.com/photo-1555899434-94d1368aa7af?auto=format&fit=crop&w=800&q=80">
+                <div class="img-btn">📍 Station View</div>
+            </div>
+            <div class="text-block">
+                <h2>Live Fleet Tracking</h2>
+                <p>CampusFlow uses real-time GPS telemetry from drivers to provide accurate bus locations and arrival estimates for ITER students.</p>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <h3 id="stat-routes">--</h3>
+                        <p>Total Routes</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3 id="stat-buses">--</h3>
+                        <p>Active Buses</p>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="window.location.href='student.html'" style="background:var(--surface-color); color:var(--accent-gold); border:1px solid var(--accent-gold);">Open Live Tracker</button>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <div><b>CampusFlow</b></div>
+        <div class="footer-links">
+            <span>Privacy</span>
+            <span>Terms</span>
+            <span>Support</span>
+            <span>Contact</span>
+            <span style="margin-left:40px;">&copy; 2026 CampusFlow. All rights reserved.</span>
+        </div>
+    </footer>
+
+    <script src="../config.js"></script>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script>
+        const contentArea = document.getElementById('arrivals-content');
+        const liveBusLocations = {};
+        let allRoutes = [];
+        let socket;
+
+        // Parse time string like "07:45AM" or "7:30 AM" to today's Date object
+        function parseArrivalTime(timeStr) {
+            if (!timeStr) return null;
+            const cleaned = timeStr.replace(/\s+/g, '').toUpperCase();
+            const match = cleaned.match(/(\d{1,2}):(\d{2})(AM|PM)/);
+            if (!match) return null;
+            let hours = parseInt(match[1]);
+            const mins = parseInt(match[2]);
+            const ampm = match[3];
+            if (ampm === 'PM' && hours !== 12) hours += 12;
+            if (ampm === 'AM' && hours === 12) hours = 0;
+            const d = new Date();
+            d.setHours(hours, mins, 0, 0);
+            return d;
+        }
+
+        // Calculate minutes until a given time
+        function minsUntil(date) {
+            if (!date) return 999;
+            const now = new Date();
+            return Math.round((date - now) / 60000);
+        }
+
+        // Get route short code like "C-1" from "Cuttack - 1 (A)"
+        function getRouteCode(routeId) {
+            const parts = routeId.split(/[\s-]+/);
+            return (parts[0] || '?')[0].toUpperCase() + (parts.find(p => /^\d/.test(p)) || '1');
+        }
+
+        function renderArrivals(routes) {
+            allRoutes = routes;
+            document.getElementById('stat-routes').textContent = routes.length;
+
+            // Sort routes by how soon they arrive at ITER
+            const upcoming = routes.map(r => {
+                const arrTime = parseArrivalTime(r.arrivalAtIter);
+                const mins = minsUntil(arrTime);
+                return { ...r, arrTime, mins };
+            }).sort((a, b) => {
+                // Show routes arriving soonest (but not already past by >30 min)
+                if (a.mins < -30 && b.mins >= -30) return 1;
+                if (b.mins < -30 && a.mins >= -30) return -1;
+                return a.mins - b.mins;
+            });
+
+            // Filter to routes that haven't fully passed yet
+            const relevant = upcoming.filter(r => r.mins > -30);
+            if (relevant.length === 0) {
+                contentArea.innerHTML = `<div class="error-msg">No upcoming buses scheduled right now. Check back during morning (6-8 AM) or afternoon (12-2 PM) hours.</div>`;
+                return;
+            }
+
+            const hero = relevant[0];
+            const sideRoutes = relevant.slice(1, 4);
+
+            const etaDisplay = hero.mins <= 0 ? 'NOW' : `${hero.mins} min`;
+            const heroStops = hero.stoppages || [];
+            const firstStop = heroStops[0]?.name || '--';
+            const lastStop = heroStops[heroStops.length - 1]?.name || 'ITER';
+
+            let sideCardsHTML = '';
+            sideRoutes.forEach(r => {
+                const eta = r.mins <= 0 ? 'NOW' : `${r.mins}m`;
+                const code = getRouteCode(r.routeId);
+                sideCardsHTML += `
+                <div class="side-card" onclick="window.location.href='student.html?route=${encodeURIComponent(r.routeId)}'">
+                    <div class="sc-header">
+                        <div>
+                            <span class="sc-route">Route ${code}</span>
+                            <h3 class="sc-name">${r.routeId}</h3>
+                        </div>
+                        <h3 class="sc-eta" data-route="${r.routeId}">${eta}</h3>
+                    </div>
+                    <div>
+                        <div class="sc-occ-flex" style="color:var(--text-muted);">
+                            <span>🚌 ${r.busNumber}</span>
+                            <span>${r.stoppages?.length || 0} stops</span>
+                        </div>
+                        <div class="sc-occ-track"><div style="width:0%; background:var(--accent-gold); height:100%; transition: width 1s;" data-bar="${r.routeId}"></div></div>
+                    </div>
+                </div>`;
+            });
+
+            contentArea.innerHTML = `
+            <div class="dashboard-grid">
+                <div>
+                    <div class="hero-card" onclick="window.location.href='student.html?route=${encodeURIComponent(hero.routeId)}'" style="cursor:pointer">
+                        <div class="hc-header">
+                            <div>
+                                <div style="display:flex; align-items:center;">
+                                    <span class="route-badge">ROUTE ${getRouteCode(hero.routeId)}</span>
+                                    <span style="font-size:12px; color:var(--text-muted);">${firstStop} → ${lastStop}</span>
+                                </div>
+                                <h2 class="route-name">${hero.routeId}</h2>
+                            </div>
+                            <div class="eta-block">
+                                <h1 id="hero-eta">${etaDisplay}</h1>
+                                <p>Scheduled ${hero.arrivalAtIter}</p>
+                            </div>
+                        </div>
+
+                        <div class="hc-footer">
+                            <div class="hf-item">
+                                <h4>Status</h4>
+                                <p id="hero-status">${hero.mins <= 5 ? '🟢 Arriving' : hero.mins <= 0 ? '🔴 At Stop' : '🟡 En Route'}</p>
+                            </div>
+                            <div class="hf-item">
+                                <h4>Vehicle</h4>
+                                <p>${hero.busNumber}</p>
+                            </div>
+                            <div class="hf-item">
+                                <h4>Driver</h4>
+                                <p>${hero.driver?.name || '--'}</p>
+                            </div>
+                            <div class="hf-item">
+                                <h4>Class Time</h4>
+                                <p>${hero.classTime}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chips-grid" style="margin-top:20px;">
+                        <div class="chip">
+                            <div class="chip-icon">🚏</div>
+                            <div class="chip-text">
+                                <h5>Total Stops</h5>
+                                <p>${heroStops.length} Stops</p>
+                            </div>
+                        </div>
+                        <div class="chip">
+                            <div class="chip-icon">⏱</div>
+                            <div class="chip-text">
+                                <h5>Departs ITER</h5>
+                                <p>${hero.departureFromIter}</p>
+                            </div>
+                        </div>
+                        <div class="chip">
+                            <div class="chip-icon">📞</div>
+                            <div class="chip-text">
+                                <h5>Conductor</h5>
+                                <p>${hero.conductor?.name || '--'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="side-cards">
+                    ${sideCardsHTML}
+                    <div class="info-card">
+                        <b style="font-size:16px; color:#fff; display:block; margin-bottom:10px;">ℹ</b>
+                        Arrival times are based on scheduled data. When a driver is actively broadcasting, ETAs update in real-time via GPS.
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // Fetch routes and render
+        fetch(`${API_BASE_URL}/api/routes`)
+            .then(res => {
+                if (!res.ok) throw new Error('Server error');
+                return res.json();
+            })
+            .then(routes => {
+                renderArrivals(routes);
+            })
+            .catch(err => {
+                console.error('Failed to load routes:', err);
+                contentArea.innerHTML = `<div class="error-msg">⚠️ Could not connect to the server. Please make sure the backend is running.</div>`;
+            });
+
+        // Socket.io for live updates
+        try {
+            socket = io(API_BASE_URL);
+
+            socket.on('connect', () => {
+                document.getElementById('live-status-text').textContent = 'Live Data';
+                document.getElementById('live-dot').style.background = 'var(--success)';
+            });
+
+            socket.on('disconnect', () => {
+                document.getElementById('live-status-text').textContent = 'Reconnecting...';
+                document.getElementById('live-dot').style.background = 'var(--danger)';
+            });
+
+            socket.on('receive-location', (data) => {
+                liveBusLocations[data.routeId] = data;
+                document.getElementById('stat-buses').textContent = Object.keys(liveBusLocations).length;
+
+                // Update progress bars for active routes
+                const bar = document.querySelector(`[data-bar="${data.routeId}"]`);
+                if (bar) bar.style.width = '100%';
+            });
+        } catch (e) {
+            console.error('Socket.io connection failed:', e);
+        }
+    </script>
+</body>
+</html>

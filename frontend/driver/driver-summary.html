@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusTransit Pro - Shift Summary</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared.css">
+    <style>
+        :root {
+            --bg-base: #0b0c0a;     
+            --surface-bg: #141611;  
+            --sidebar-bg: #0f110c;  
+            --text-main: #ffffff;
+            --text-muted: #8b9286;
+            --accent-gold: #eab308;
+            --accent-light: #fef08a;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --card-surface: rgba(20, 22, 17, 0.9);
+        }
+
+        body { 
+            margin: 0; padding: 0; 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-base); 
+            color: var(--text-main); 
+            display: flex; height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .btn-gold:hover { background: #fde047; }
+
+        /* MAIN APP AREA */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background-image: radial-gradient(circle at 80% 20%, rgba(234,179,8,0.03) 0%, transparent 50%); }
+
+        /* DASHBOARD GRID */
+        .dashboard-scroll { flex: 1; overflow-y: auto; padding: 50px 60px; }
+        
+        .page-header { max-width: 600px; margin-bottom: 50px; }
+        .page-header h1 { font-size: 4rem; font-weight: 800; margin: 0 0 20px 0; line-height: 1; letter-spacing: -2px; color: var(--accent-light); }
+        .page-header h1 span { font-family: 'Playfair Display', serif; font-weight: 600; font-style: italic; color: #fff; }
+        .page-header p { font-size: 1.1rem; color: var(--text-muted); line-height: 1.6; margin: 0; }
+
+        .grid-layout { 
+            display: grid; 
+            grid-template-columns: 2fr 1fr; 
+            gap: 20px; 
+            max-width: 1000px;
+        }
+
+        .card { background: var(--card-surface); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px; position: relative; overflow: hidden; }
+
+        /* Card 1: Main Score */
+        .card-score { grid-column: 1 / 2; position: relative; }
+        .cs-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 15px; display: block; }
+        .cs-val { font-size: 5rem; font-weight: 800; color: #fff; line-height: 1; margin: 0 0 10px 0; letter-spacing: -2px; }
+        .cs-desc { color: var(--text-muted); font-size: 14px; margin: 0 0 40px 0; }
+        .cs-trend { font-size: 13px; font-weight: 700; color: var(--accent-light); display: flex; align-items: center; gap: 8px; }
+        
+        .huge-bg-icon { position: absolute; right: -20px; bottom: -40px; font-size: 250px; line-height: 1; color: rgba(234,179,8,0.08); pointer-events: none; }
+
+        /* Card 2: Distance */
+        .card-dist { grid-column: 2 / 3; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .cd-icon { width: 60px; height: 60px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-muted); margin-bottom: 25px; }
+        .card-dist h2 { font-size: 2.5rem; font-weight: 800; margin: 0 0 5px 0; color: #fff; display: flex; align-items:baseline; justify-content:center; gap: 5px; }
+        .card-dist h2 span { font-size: 1rem; color: var(--text-muted); font-weight: 600; }
+        .card-dist p { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin: 0; }
+
+        /* Card 3: Rating */
+        .card-rating { grid-column: 1 / 2; max-width: 350px; }
+        .stars { color: #fff; font-size: 18px; letter-spacing: 4px; margin-bottom: 20px; }
+        .card-rating h2 { font-size: 3.5rem; font-weight: 800; margin: 0 0 15px 0; color: var(--accent-light); letter-spacing: -1px; }
+        .card-rating p { font-size: 12px; font-style: italic; color: var(--text-muted); line-height: 1.5; margin: 0; }
+
+        /* Card 4: Occupancy */
+        .card-occ { grid-column: 2 / 3; margin-left: -200px; display: flex; align-items: center; justify-content: space-between; }
+        .co-left { max-width: 250px; }
+        .co-left h2 { font-size: 3rem; font-weight: 800; margin: 0 0 15px 0; color: #fff; }
+        .co-left p { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0; }
+        .occ-ring { width: 130px; height: 130px; border-radius: 50%; border: 8px solid rgba(255,255,255,0.05); border-top-color: var(--text-main); border-right-color: var(--text-main); transform: rotate(45deg); display: flex; justify-content: center; align-items: center; }
+        .occ-ring-inner { transform: rotate(-45deg); font-size: 24px; color: var(--text-muted); }
+
+        /* Clock Out Banner */
+        .clock-out {
+            max-width: 1000px; margin-top: 50px;
+            background: rgba(234,179,8,0.02); border: 1px solid rgba(234,179,8,0.1); border-radius: 20px;
+            padding: 40px 50px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .co-text h3 { font-size: 1.5rem; font-weight: 700; margin: 0 0 10px 0; color: #fff; }
+        .co-text p { font-size: 13px; color: var(--text-muted); margin: 0; max-width: 400px; line-height: 1.5; }
+        .co-actions { display: flex; gap: 20px; }
+        .btn-outline-gold { background: transparent; border: 1px solid rgba(234,179,8,0.3); color: var(--accent-gold); padding: 18px 30px; border-radius: 30px; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
+        .btn-outline-gold:hover { background: rgba(234,179,8,0.05); }
+        .btn-solid-gold { background: var(--accent-light); color: #000; border: none; padding: 18px 30px; border-radius: 30px; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
+
+        /* Footer */
+
+        .card-row-2 { display: grid; grid-template-columns: 1fr 1.8fr; gap: 20px; max-width: 1000px; margin-top: 20px; }
+        .card-occ { grid-column: auto; margin-left: 0; }
+
+    
+        /* Light Mode */
+        body.light-mode { --bg-base: #fafafa; --surface-bg: #ffffff; --sidebar-bg: #f8fafc; --text-main: #000000; --text-muted: #64748b; --accent-gold: #ea580c; --accent-light: #f97316; --border-color: rgba(0, 0, 0, 0.1); --card-border: rgba(0, 0, 0, 0.1); --card-surface: #ffffff; }
+        body.light-mode .card, body.light-mode .login-box { background: #ffffff; border: 1px solid rgba(0,0,0,0.1); }
+        body.light-mode .ns-block h3.white { color: #000; }
+        body.light-mode .btn-dark, body.light-mode .btn-outline { background: #f1f5f9; color: #000; border-color: rgba(0,0,0,0.1); }
+        body.light-mode .btn-dark:hover, body.light-mode .btn-outline:hover { background: #e2e8f0; }
+        body.light-mode .clock-out { background: #fff7ed; border-color: #ffedd5; }
+        body.light-mode .btn-outline-gold { background: #fff; border-color: #fed7aa; }
+        body.light-mode .radial-inner { background: #ffffff; }
+        body.light-mode .page-header h1 span { color: #000; }
+        body.light-mode .cs-val, body.light-mode .card-dist h2, body.light-mode .card-rating h2, body.light-mode .co-left h2, body.light-mode .co-text h3 { color: #000; }
+        body.light-mode .cd-text h4 { color: #000; }
+        body.light-mode .login-title { color: #000; }
+        body.light-mode #login-btn { color: #fff; }
+        body.light-mode .btn-gold { background: #ea580c; color: #fff; }
+
+    </style>
+</head>
+<body>
+    <script>if (localStorage.getItem("theme") === "light") document.body.classList.add("light-mode");</script>
+    <script>
+        // Auth guard — must have driver token to view this page
+        if (!localStorage.getItem('driverToken')) {
+            window.location.href = '../index.html';
+        }
+        function driverLogout() {
+            localStorage.removeItem('driverToken');
+            window.location.href = '../index.html';
+        }
+    </script>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div>
+            <div class="sb-header">
+                <div class="sb-logo">CampusTransit Pro</div>
+                <div class="profile-card">
+                    <div class="p-avatar"></div>
+                    <div class="p-info">
+                        <h4>Unit 402</h4>
+                        <p>Shift: Morning Express</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-menu">
+                <div class="nav-item">
+                    <span class="nav-icon">⊞</span> Dashboard
+                </div>
+                <div class="nav-item">
+                    <span class="nav-icon">🚌</span> My Route
+                </div>
+                <div class="nav-item">
+                    <span class="nav-icon">📅</span> Schedule
+                </div>
+                <div class="nav-item active">
+                    <span class="nav-icon">📋</span> Shift Summary
+                </div>
+            </div>
+        </div>
+        
+        <div class="sb-footer">
+            <button class="btn-gold" onclick="driverLogout()">End Shift</button>
+        </div>
+    </aside>
+
+    <!-- MAIN APP AREA -->
+    <main class="main-content">
+        
+        <nav class="top-nav">
+            <div class="tn-left">
+                <div class="tn-logo">CampusTransit Pro</div>
+                <div class="tn-links">
+                    <div class="tn-link">On Duty</div>
+                    <div class="tn-link">Next Stop: Library</div>
+                    <div class="tn-link active">GPS Active</div>
+                </div>
+            </div>
+            <div class="tn-right">
+                <span>🔔</span>
+                <span style="border: 2px solid var(--text-muted); border-radius:50%; width: 24px; height: 24px; display:inline-flex; align-items:center; justify-content:center; font-size:14px;">👤</span>
+            </div>
+        </nav>
+
+        <div class="dashboard-scroll">
+            
+            <div class="page-header">
+                <h1>Shift <span>Complete.</span></h1>
+                <p>Great work today, Unit 402. Your efficiency and passenger feedback remained above campus standards. Review your metrics before clocking out.</p>
+            </div>
+
+            <div class="grid-layout">
+                <!-- Main Score -->
+                <div class="card card-score">
+                    <div class="huge-bg-icon">🕒</div>
+                    <span class="cs-label">RELIABILITY SCORE</span>
+                    <h2 class="cs-val">98.4%</h2>
+                    <p class="cs-desc">On-time performance percentage</p>
+                    <div class="cs-trend">↗ +2.1% from last week</div>
+                </div>
+
+                <!-- Distance -->
+                <div class="card card-dist">
+                    <div class="cd-icon">↹</div>
+                    <h2>142.8 <span>mi</span></h2>
+                    <p>TOTAL DISTANCE</p>
+                </div>
+            </div>
+
+            <div class="card-row-2">
+                <!-- Rating -->
+                <div class="card card-rating">
+                    <span class="cs-label">PASSENGER RATING</span>
+                    <div class="stars">★★★★★</div>
+                    <h2>4.92</h2>
+                    <p>"Driver was very helpful with directions!"</p>
+                </div>
+
+                <!-- Occupancy -->
+                <div class="card card-occ">
+                    <div class="co-left">
+                        <span class="cs-label">AVG. OCCUPANCY</span>
+                        <h2>64%</h2>
+                        <p>Your routes saw a peak occupancy of 88% during the mid-day rush. Fuel efficiency remained optimal.</p>
+                    </div>
+                    <div class="occ-ring">
+                        <div class="occ-ring-inner">👥</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="clock-out">
+                <div class="co-text">
+                    <h3>Ready to clock out?</h3>
+                    <p>All logs have been synchronized with the central dispatch.</p>
+                </div>
+                <div class="co-actions">
+                    <button class="btn-outline-gold">View Log Detail</button>
+                    <button class="btn-solid-gold" onclick="driverLogout()">Complete Shift</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="app-footer">
+            <div>&copy; 2026 Campus Transit Systems</div>
+            <div class="af-links">
+                <span>Emergency Support</span>
+                <span>Dispatch</span>
+                <span>Maintenance Request</span>
+            </div>
+        </div>
+
+    </main>
+
+</body>
+</html>

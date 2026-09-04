@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#fcd34d">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚌</text></svg>">
+    <title>CampusFlow - Campus Transit Reimagined</title>
+    <meta name="description" content="CampusFlow - Next generation campus mobility. Seamless navigation, real-time tracking, and elite transit management for ITER Campus.">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./shared.css">
+    
+    <style>
+        body { overflow-x: hidden; }
+
+        /* ===== HERO ===== */
+        .hero {
+            max-width: 1100px; margin: 0 auto;
+            padding: 100px 40px 80px;
+            text-align: center;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--accent-gold-dim); color: var(--accent-gold);
+            padding: 8px 20px; border-radius: 30px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.5px; margin-bottom: 30px;
+            border: 1px solid rgba(252, 211, 77, 0.15);
+        }
+        .hero-badge .pulse-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent-gold);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+
+        .hero h1 {
+            font-size: 4.5rem; font-weight: 800; line-height: 1.05;
+            letter-spacing: -2px; margin: 0 0 24px 0;
+            max-width: 800px; margin-left: auto; margin-right: auto;
+        }
+        .hero h1 em {
+            font-family: 'Playfair Display', serif; color: var(--accent-gold);
+            font-weight: 600; font-style: italic;
+        }
+        .hero-sub {
+            font-size: 1.1rem; color: var(--text-muted); line-height: 1.7;
+            max-width: 550px; margin: 0 auto 40px;
+        }
+
+        .hero-cta {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 16px 32px; border-radius: 30px;
+            background: var(--accent-gold); color: #000;
+            font-size: 14px; font-weight: 700; text-decoration: none;
+            transition: 0.3s; cursor: pointer; border: none;
+        }
+        .hero-cta:hover { background: #fde68a; transform: translateY(-2px); box-shadow: 0 10px 30px rgba(252, 211, 77, 0.3); }
+
+        /* ===== STATS BAR ===== */
+        .stats-bar {
+            max-width: 900px; margin: 0 auto 80px;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px;
+            background: var(--border-color); border-radius: 20px; overflow: hidden;
+        }
+        .stat-item {
+            background: var(--surface-color); padding: 30px 20px;
+            text-align: center;
+        }
+        .stat-item:first-child { border-radius: 20px 0 0 20px; }
+        .stat-item:last-child { border-radius: 0 20px 20px 0; }
+        .stat-num {
+            font-size: 2rem; font-weight: 800; color: var(--accent-gold);
+            margin-bottom: 6px;
+        }
+        .stat-label {
+            font-size: 10px; font-weight: 700; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 1.5px;
+        }
+
+        /* ===== FEATURES ===== */
+        .features {
+            max-width: 1100px; margin: 0 auto;
+            padding: 0 40px 100px;
+        }
+        .section-label {
+            font-size: 10px; font-weight: 800; color: var(--accent-gold);
+            text-transform: uppercase; letter-spacing: 2px;
+            margin-bottom: 16px; text-align: center;
+        }
+        .section-title {
+            font-size: 2.8rem; font-weight: 800; letter-spacing: -1.5px;
+            text-align: center; margin: 0 0 60px;
+        }
+        .features-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+        }
+        .feature-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 24px; padding: 36px;
+            transition: 0.4s ease; position: relative; overflow: hidden;
+        }
+        .feature-card:hover {
+            border-color: rgba(252, 211, 77, 0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .feature-icon {
+            width: 52px; height: 52px;
+            background: var(--accent-gold-dim);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; margin-bottom: 24px;
+        }
+        .feature-card h3 {
+            font-size: 1.2rem; font-weight: 700; margin: 0 0 12px;
+        }
+        .feature-card p {
+            font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin: 0;
+        }
+
+        /* ===== HOW IT WORKS ===== */
+        .how-it-works {
+            max-width: 1100px; margin: 0 auto;
+            padding: 0 40px 100px;
+        }
+        .steps-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px;
+            position: relative;
+        }
+        .steps-grid::before {
+            content: '';
+            position: absolute; top: 40px; left: 15%; right: 15%;
+            height: 2px; background: linear-gradient(90deg, var(--accent-gold-dim), var(--accent-gold), var(--accent-gold-dim));
+            z-index: 0;
+        }
+        .step-item {
+            text-align: center; position: relative; z-index: 1;
+        }
+        .step-number {
+            width: 80px; height: 80px;
+            background: var(--surface-color);
+            border: 2px solid var(--accent-gold);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px; font-weight: 800; color: var(--accent-gold);
+            margin: 0 auto 24px;
+            box-shadow: 0 0 30px rgba(252, 211, 77, 0.1);
+        }
+        .step-item h3 {
+            font-size: 1.1rem; font-weight: 700; margin: 0 0 10px;
+        }
+        .step-item p {
+            font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;
+            max-width: 260px; margin: 0 auto;
+        }
+
+        /* ===== LOGIN PORTALS (only shown when NOT logged in) ===== */
+        .portals-section {
+            max-width: 1100px; margin: 0 auto;
+            padding: 0 40px 100px;
+        }
+        .portals {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
+        }
+        .portal-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s ease;
+            display: flex; flex-direction: column; justify-content: space-between;
+            min-height: 300px;
+        }
+        .portal-card:hover {
+            border-color: rgba(255,255,255,0.12);
+            transform: translateY(-4px);
+            box-shadow: 0 24px 50px rgba(0,0,0,0.5);
+        }
+        .portal-icon {
+            width: 52px; height: 52px;
+            background: var(--accent-gold);
+            color: #000;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; margin-bottom: 28px;
+        }
+        .portal-card h2 {
+            font-size: 2rem; font-weight: 800; margin: 0 0 14px;
+            letter-spacing: -1px;
+        }
+        .portal-card p {
+            font-size: 0.95rem; color: var(--text-muted); line-height: 1.6;
+            max-width: 320px; margin: 0 0 32px;
+        }
+        .portal-btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 14px 28px; border-radius: 30px;
+            font-size: 14px; font-weight: 700;
+            text-decoration: none; cursor: pointer;
+            border: 2px solid var(--border-color);
+            background: transparent; color: var(--text-main);
+            transition: 0.3s ease;
+            width: fit-content;
+        }
+        .portal-btn:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+            background: rgba(252, 211, 77, 0.05);
+        }
+        .portal-btn.filled {
+            background: var(--accent-gold); color: #000;
+            border-color: var(--accent-gold);
+        }
+        .portal-btn.filled:hover {
+            background: #fde68a; transform: translateX(4px);
+        }
+        .portal-deco {
+            position: absolute; bottom: 20px; right: 20px;
+            opacity: 0.06; font-size: 120px; line-height: 1;
+            pointer-events: none;
+        }
+
+        /* ===== DASHBOARD QUICK ACCESS (shown when logged in) ===== */
+        .dashboard-access {
+            max-width: 1100px; margin: 0 auto;
+            padding: 0 40px 100px;
+        }
+        .da-cards {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;
+        }
+        .da-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 24px; padding: 32px;
+            display: flex; align-items: center; gap: 20px;
+            transition: 0.3s; cursor: pointer; text-decoration: none; color: inherit;
+        }
+        .da-card:hover {
+            border-color: var(--accent-gold);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+        .da-icon {
+            width: 56px; height: 56px; border-radius: 16px;
+            background: var(--accent-gold-dim);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; flex-shrink: 0;
+        }
+        .da-text h3 { margin: 0 0 6px; font-size: 1.1rem; font-weight: 700; }
+        .da-text p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+        .da-arrow {
+            margin-left: auto; font-size: 20px; color: var(--text-muted);
+            transition: 0.3s;
+        }
+        .da-card:hover .da-arrow { color: var(--accent-gold); transform: translateX(4px); }
+
+        /* ===== ABOUT SECTION ===== */
+        .about-section {
+            max-width: 1100px; margin: 0 auto;
+            padding: 0 40px 100px;
+        }
+        .about-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
+            align-items: center;
+        }
+        .about-text h2 {
+            font-size: 2.5rem; font-weight: 800; letter-spacing: -1px;
+            margin: 0 0 20px;
+        }
+        .about-text h2 em {
+            font-family: 'Playfair Display', serif; color: var(--accent-gold);
+            font-weight: 600; font-style: italic;
+        }
+        .about-text p {
+            font-size: 1rem; color: var(--text-muted); line-height: 1.7;
+            margin: 0 0 20px;
+        }
+        .about-visual {
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            position: relative; overflow: hidden;
+            min-height: 350px;
+        }
+        .about-visual .campus-img {
+            width: 100%; height: 100%;
+            min-height: 350px;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.6s ease;
+        }
+        .about-visual:hover .campus-img {
+            transform: scale(1.04);
+        }
+        .about-visual .campus-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 28px 28px 24px;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+        }
+        .about-visual h3 {
+            font-size: 1.3rem; font-weight: 800; margin: 0 0 6px;
+            color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .about-visual p {
+            font-size: 0.85rem; color: rgba(255,255,255,0.7); margin: 0;
+        }
+        .about-visual .campus-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--accent-gold); color: #000;
+            padding: 4px 12px; border-radius: 20px;
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 10px;
+        }
+
+        /* ===== SIGN IN NAV BUTTON ===== */
+        .nav-signin {
+            padding: 10px 24px; border-radius: 30px;
+            background: transparent; border: 2px solid var(--accent-gold);
+            color: var(--accent-gold); font-size: 13px; font-weight: 700;
+            cursor: pointer; transition: 0.3s; text-decoration: none;
+        }
+        .nav-signin:hover { background: var(--accent-gold); color: #000; }
+
+        /* ===== LOGIN MODAL ===== */
+        #login-modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11, 14, 20, 0.85); backdrop-filter: blur(10px);
+            z-index: 1000; display: none; justify-content: center; align-items: center;
+        }
+        body.light-mode #login-modal { background: rgba(255, 255, 255, 0.85); }
+
+        .modal-content {
+            background: var(--surface-color); padding: 40px; border-radius: 24px;
+            width: 380px; border: 1px solid var(--border-color);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            position: relative; text-align: center;
+        }
+        .modal-content h2 { margin: 0 0 8px 0; font-size: 1.8rem; font-weight: 800; letter-spacing: -1px; }
+        .modal-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+
+        .modal-content input {
+            width: 100%; padding: 14px 16px; border-radius: 12px;
+            border: 1px solid var(--border-color); font-size: 13px;
+            box-sizing: border-box; background: rgba(255,255,255,0.03);
+            color: #fff; margin-bottom: 12px; font-family: 'Inter', sans-serif;
+            transition: 0.3s; text-align: left;
+        }
+        body.light-mode .modal-content input { background: #f8fafc; color: #000; border-color: #cbd5e1; }
+        .modal-content input:focus { outline: none; border-color: var(--accent-gold); }
+        .modal-content input::placeholder { color: var(--text-muted); }
+
+        .auth-btn {
+            width: 100%; padding: 14px; background: var(--accent-gold); color: #000;
+            border: none; border-radius: 12px; font-weight: 700; font-size: 13px;
+            cursor: pointer; transition: 0.3s; text-transform: uppercase;
+            letter-spacing: 0.5px; font-family: 'Inter', sans-serif; margin-top: 4px;
+        }
+        .auth-btn:hover { filter: brightness(1.1); }
+        body.light-mode .auth-btn { background: #ea580c; color: #fff; }
+
+        .auth-error { color: #ef4444; font-size: 12px; font-weight: 600; margin-top: 12px; display: none; }
+        .auth-success { color: #10b981; font-size: 12px; font-weight: 600; margin-top: 12px; display: none; }
+
+        /* Google Button */
+        .google-btn {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            width: 100%; padding: 14px; background: #fff; color: #333;
+            border: 1px solid #dadce0; border-radius: 12px; font-size: 14px;
+            font-weight: 600; cursor: pointer; transition: 0.3s; font-family: 'Inter', sans-serif;
+        }
+        .google-btn:hover { background: #f8f9fa; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .google-btn img { width: 20px; height: 20px; }
+
+        .divider {
+            display: flex; align-items: center; gap: 16px; margin: 20px 0;
+            color: var(--text-muted); font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border-color); }
+
+        /* Step 2 */
+        #google-step2 { display: none; }
+        .welcome-name { color: var(--accent-gold); font-weight: 700; font-size: 15px; margin-bottom: 16px; display: block; }
+
+        .driver-link { display: block; margin-top: 16px; font-size: 11px; color: var(--text-muted); text-decoration: none; }
+        .driver-link:hover { color: var(--accent-gold); }
+        .driver-link span { color: var(--accent-gold); font-weight: 700; }
+
+        /* ===== DRIVER LOGIN MODAL ===== */
+        #driver-login-modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11, 14, 20, 0.85); backdrop-filter: blur(10px);
+            z-index: 1000; display: none; justify-content: center; align-items: center;
+        }
+        body.light-mode #driver-login-modal { background: rgba(255, 255, 255, 0.85); }
+
+        #driver-login-modal .modal-content input {
+            color: #fff;
+        }
+        body.light-mode #driver-login-modal .modal-content input { color: #000; }
+
+        /* ===== Welcome Banner (logged in) ===== */
+        .welcome-banner {
+            max-width: 1100px; margin: 0 auto;
+            padding: 0 40px 60px;
+        }
+        .wb-inner {
+            background: linear-gradient(135deg, rgba(252, 211, 77, 0.08), rgba(252, 211, 77, 0.02));
+            border: 1px solid rgba(252, 211, 77, 0.15);
+            border-radius: 24px; padding: 32px 40px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .wb-text h2 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 700; }
+        .wb-text h2 span { color: var(--accent-gold); }
+        .wb-text p { margin: 0; font-size: 0.9rem; color: var(--text-muted); }
+
+        /* Mobile */
+        @media (max-width: 800px) {
+            .hero h1 { font-size: 2.5rem !important; }
+            .hero { padding: 60px 20px 50px; }
+            .portals { grid-template-columns: 1fr; }
+            .features-grid { grid-template-columns: 1fr; }
+            .steps-grid { grid-template-columns: 1fr; gap: 30px; }
+            .steps-grid::before { display: none; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); border-radius: 16px; }
+            .stat-item:first-child { border-radius: 16px 0 0 0; }
+            .stat-item:nth-child(2) { border-radius: 0 16px 0 0; }
+            .stat-item:nth-child(3) { border-radius: 0 0 0 16px; }
+            .stat-item:last-child { border-radius: 0 0 16px 0; }
+            .about-grid { grid-template-columns: 1fr; gap: 30px; }
+            .section-title { font-size: 2rem; }
+            .wb-inner { flex-direction: column; gap: 15px; text-align: center; }
+            .da-cards { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">CampusFlow</div>
+        <div class="nav-links">
+            <a href="#" class="active">Home</a>
+            <a href="#features-section">Features</a>
+            <a href="#how-section">How It Works</a>
+            <a href="#about-section">About</a>
+        </div>
+        <div class="nav-actions" id="nav-actions">
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">☀️</button>
+            <!-- Auth buttons injected by JS -->
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-badge">
+            <div class="pulse-dot"></div>
+            Live Campus Transit System
+        </div>
+        <h1>Your Campus Commute, <em>Reimagined</em></h1>
+        <p class="hero-sub">
+            CampusFlow brings real-time bus tracking, smart route planning, and seamless transit management 
+            to ITER Campus. Never miss your bus again.
+        </p>
+        <button class="hero-cta" id="hero-cta-btn" onclick="scrollToLogin()">
+            Get Started &nbsp;→
+        </button>
+    </section>
+
+    <!-- Stats Bar -->
+    <section class="stats-bar">
+        <div class="stat-item">
+            <div class="stat-num">15+</div>
+            <div class="stat-label">Active Routes</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">50+</div>
+            <div class="stat-label">Bus Stops</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">24/7</div>
+            <div class="stat-label">GPS Tracking</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">1000+</div>
+            <div class="stat-label">Students Served</div>
+        </div>
+    </section>
+
+    <!-- Welcome Banner (shown when logged in) -->
+    <section class="welcome-banner" id="welcome-banner" style="display: none;">
+        <div class="wb-inner">
+            <div class="wb-text">
+                <h2>Welcome back, <span id="wb-name">User</span> 👋</h2>
+                <p>You're logged in. Jump straight to your dashboard or explore the platform.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Quick Access (shown when logged in) -->
+    <section class="dashboard-access" id="dashboard-access" style="display: none;">
+        <div class="section-label">Quick Access</div>
+        <h2 class="section-title">Your Dashboard</h2>
+        <div class="da-cards" id="da-cards">
+            <!-- Populated by JS based on login type -->
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features-section">
+        <div class="section-label">Platform Features</div>
+        <h2 class="section-title">Everything You Need</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📍</div>
+                <h3>Real-Time Tracking</h3>
+                <p>Watch your bus move on a live map with GPS precision. Know exactly when it will arrive at your stop.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚏</div>
+                <h3>Smart Stop Matching</h3>
+                <p>Enter your address and we automatically find your nearest bus stop and assign the best route for you.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⏱️</div>
+                <h3>Live ETAs</h3>
+                <p>Get accurate estimated arrival times based on real-time driver GPS data, not just schedules.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🗺️</div>
+                <h3>Route Explorer</h3>
+                <p>Browse all campus routes, view stop details, departure times, and find alternative routes instantly.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚌</div>
+                <h3>Driver Dashboard</h3>
+                <p>Drivers can broadcast their location in real-time, allowing students to track buses from anywhere.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔔</div>
+                <h3>Arrival Alerts</h3>
+                <p>See live arrival boards for ITER campus, including bus status, crowd density, and schedule changes.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-section">
+        <div class="section-label">How It Works</div>
+        <h2 class="section-title">Simple & Seamless</h2>
+        <div class="steps-grid">
+            <div class="step-item">
+                <div class="step-number">1</div>
+                <h3>Sign In</h3>
+                <p>Students sign in with Google. Drivers enter their secure PIN. Quick and hassle-free authentication.</p>
+            </div>
+            <div class="step-item">
+                <div class="step-number">2</div>
+                <h3>Find Your Route</h3>
+                <p>Enter your address or browse routes. We'll match you to the nearest stop and show your bus in real-time.</p>
+            </div>
+            <div class="step-item">
+                <div class="step-number">3</div>
+                <h3>Track & Ride</h3>
+                <p>Watch your bus live on the map with ETAs, crowd info, and driver details. Never miss your ride.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about-section">
+        <div class="about-grid">
+            <div class="about-text">
+                <div class="section-label" style="text-align:left;">About CampusFlow</div>
+                <h2>Built for <em>ITER</em> Campus</h2>
+                <p>
+                    CampusFlow is a next-generation campus transit platform designed specifically for 
+                    ITER (Institute of Technical Education and Research), Bhubaneswar. Our mission is 
+                    to make campus commuting stress-free by connecting students and drivers through 
+                    real-time technology.
+                </p>
+                <p>
+                    Whether you're a student trying to catch your morning bus or a driver managing 
+                    your route, CampusFlow provides the tools you need for a seamless transit experience.
+                </p>
+            </div>
+            <div class="about-visual">
+                <img
+                    src="images/iter-campus.jpg"
+                    alt="ITER Campus Gate, Bhubaneswar"
+                    class="campus-img"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.background='var(--surface-color)'; "
+                >
+                <div class="campus-overlay">
+                    <div class="campus-badge">📍 Our Campus</div>
+                    <h3>ITER Campus Transit</h3>
+                    <p>Siksha 'O' Anusandhan University, Bhubaneswar</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Login Portals (hidden when logged in) -->
+    <section class="portals-section" id="portals-section">
+        <div class="section-label">Get Started</div>
+        <h2 class="section-title">Choose Your Portal</h2>
+        <div class="portals">
+            <div class="portal-card" id="student-portal">
+                <div>
+                    <div class="portal-icon">🎓</div>
+                    <h2>Student Portal</h2>
+                    <p>Track your shuttle in real-time, view dynamic route schedules, and manage your campus transit pass all in one place.</p>
+                </div>
+                <a href="#" class="portal-btn filled" onclick="openModal(); return false;">Sign In as Student &nbsp;→</a>
+                <div class="portal-deco">🎓</div>
+            </div>
+
+            <div class="portal-card" id="driver-portal">
+                <div>
+                    <div class="portal-icon">🚌</div>
+                    <h2>Driver Portal</h2>
+                    <p>Access live dispatch, broadcast your location for student tracking, and manage your daily route assignments.</p>
+                </div>
+                <a href="#" class="portal-btn" onclick="openDriverModal(); return false;">Sign In as Driver &nbsp;→</a>
+                <div class="portal-deco">🚌</div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div><b>CampusFlow</b></div>
+        <div class="footer-links">
+            <span>Privacy Policy</span>
+            <span>Terms of Service</span>
+            <span>Campus Safety</span>
+            <span>Contact</span>
+        </div>
+        <div>© 2026 CampusFlow Transit Systems. All rights reserved.</div>
+    </footer>
+
+    <!-- Student Auth Modal -->
+    <div id="login-modal">
+        <div class="modal-content">
+            <div class="close-btn" onclick="closeModal()">&times;</div>
+
+            <!-- STEP 1: Google Sign-In -->
+            <div id="google-step1">
+                <h2>Student Portal</h2>
+                <p class="modal-subtitle">Sign in to access live bus tracking</p>
+
+                <button class="google-btn" id="google-signin-btn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                    Sign in with Google
+                </button>
+
+                <a href="#" onclick="closeModal(); openDriverModal(); return false;" class="driver-link">Are you a driver? <span>Login here →</span></a>
+            </div>
+
+            <!-- STEP 2: Registration Number (first-time users) -->
+            <div id="google-step2">
+                <h2>Almost There!</h2>
+                <span class="welcome-name" id="google-welcome"></span>
+                <p class="modal-subtitle">Just a couple more details to complete your profile</p>
+
+                <input type="text" id="g-reg-number" placeholder="Registration Number (e.g., 24E116D58)" maxlength="15" style="text-transform: uppercase;">
+                <input type="text" id="g-address" placeholder="Home Address (for bus stop matching)">
+
+                <button class="auth-btn" onclick="completeGoogleRegistration()">Complete Registration</button>
+            </div>
+
+            <div class="auth-error" id="auth-error"></div>
+            <div class="auth-success" id="auth-success"></div>
+        </div>
+    </div>
+
+    <!-- Driver Auth Modal -->
+    <div id="driver-login-modal">
+        <div class="modal-content">
+            <div class="close-btn" onclick="closeDriverModal()">&times;</div>
+            <h2>Driver Portal</h2>
+            <p class="modal-subtitle">Enter your driver PIN to access the system</p>
+            <input type="password" id="driver-pin-input" placeholder="Enter Driver PIN">
+            <button class="auth-btn" id="driver-login-btn" onclick="attemptDriverLogin()">Connect System</button>
+            <div class="auth-error" id="driver-auth-error"></div>
+            <div class="auth-success" id="driver-auth-success"></div>
+            <a href="#" onclick="closeDriverModal(); openModal(); return false;" class="driver-link">Are you a student? <span>Login here →</span></a>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        const GOOGLE_CLIENT_ID = '673741953853-ldcf9bde54uiv5snch47redg4284942i.apps.googleusercontent.com';
+        let pendingGoogleCredential = null;
+
+        // ===== THEME =====
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-mode');
+            const themeBtn = document.getElementById('theme-btn');
+            if (themeBtn) themeBtn.innerText = '🌙';
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            document.getElementById('theme-btn').innerText = isLight ? '🌙' : '☀️';
+        }
+
+        // ===== AUTH STATE =====
+        const isStudentLoggedIn = !!localStorage.getItem('studentToken');
+        const isDriverLoggedIn = !!localStorage.getItem('driverToken');
+        const isAnyLoggedIn = isStudentLoggedIn || isDriverLoggedIn;
+
+        function updateUI() {
+            const navActions = document.getElementById('nav-actions');
+            const portalsSection = document.getElementById('portals-section');
+            const dashboardAccess = document.getElementById('dashboard-access');
+            const welcomeBanner = document.getElementById('welcome-banner');
+            const heroCta = document.getElementById('hero-cta-btn');
+            const daCards = document.getElementById('da-cards');
+
+            if (isAnyLoggedIn) {
+                // Hide login portals
+                portalsSection.style.display = 'none';
+                
+                // Show welcome banner
+                welcomeBanner.style.display = 'block';
+                
+                // Show dashboard access
+                dashboardAccess.style.display = 'block';
+
+                let cardsHTML = '';
+
+                if (isStudentLoggedIn) {
+                    const studentName = localStorage.getItem('studentName') || 'Student';
+                    const regNo = localStorage.getItem('studentReg');
+                    document.getElementById('wb-name').textContent = studentName;
+
+                    cardsHTML += `
+                        <a href="student/student.html?id=${regNo}" class="da-card">
+                            <div class="da-icon">📍</div>
+                            <div class="da-text">
+                                <h3>Live Tracking</h3>
+                                <p>Track your bus in real-time on the map</p>
+                            </div>
+                            <div class="da-arrow">→</div>
+                        </a>
+                        <a href="student/routes.html" class="da-card">
+                            <div class="da-icon">🗺️</div>
+                            <div class="da-text">
+                                <h3>Route Explorer</h3>
+                                <p>Browse all campus routes and schedules</p>
+                            </div>
+                            <div class="da-arrow">→</div>
+                        </a>
+                        <a href="student/nearby.html" class="da-card">
+                            <div class="da-icon">🚏</div>
+                            <div class="da-text">
+                                <h3>Nearby Stops</h3>
+                                <p>Find the closest bus stops to you</p>
+                            </div>
+                            <div class="da-arrow">→</div>
+                        </a>
+                        <a href="student/arrivals.html" class="da-card">
+                            <div class="da-icon">⏱️</div>
+                            <div class="da-text">
+                                <h3>Live Arrivals</h3>
+                                <p>Check real-time arrival board for ITER</p>
+                            </div>
+                            <div class="da-arrow">→</div>
+                        </a>
+                    `;
+
+                    // Add logout to nav
+                    const logoutBtn = document.createElement('a');
+                    logoutBtn.href = "#";
+                    logoutBtn.className = "nav-signin";
+                    logoutBtn.style.borderColor = "var(--danger)";
+                    logoutBtn.style.color = "var(--danger)";
+                    logoutBtn.innerHTML = "Logout";
+                    logoutBtn.onclick = (e) => {
+                        e.preventDefault();
+                        localStorage.removeItem('studentToken');
+                        localStorage.removeItem('studentName');
+                        localStorage.removeItem('studentReg');
+                        localStorage.removeItem('studentAddress');
+                        window.location.reload();
+                    };
+                    navActions.appendChild(logoutBtn);
+
+                    // Update hero CTA
+                    heroCta.textContent = 'Go to Dashboard →';
+                    heroCta.onclick = () => { window.location.href = `student/student.html?id=${regNo}`; };
+                }
+
+                if (isDriverLoggedIn) {
+                    if (!isStudentLoggedIn) {
+                        document.getElementById('wb-name').textContent = 'Driver';
+                        heroCta.textContent = 'Go to Dashboard →';
+                        heroCta.onclick = () => { window.location.href = 'driver/driver.html'; };
+                    }
+
+                    cardsHTML += `
+                        <a href="driver/driver.html" class="da-card">
+                            <div class="da-icon">🚌</div>
+                            <div class="da-text">
+                                <h3>Driver Broadcast</h3>
+                                <p>Start broadcasting your live location</p>
+                            </div>
+                            <div class="da-arrow">→</div>
+                        </a>
+                        <a href="driver/driver-dashboard.html" class="da-card">
+                            <div class="da-icon">📊</div>
+                            <div class="da-text">
+                                <h3>Driver Dashboard</h3>
+                                <p>View route stats and performance</p>
+                            </div>
+                            <div class="da-arrow">→</div>
+                        </a>
+                    `;
+
+                    if (!isStudentLoggedIn) {
+                        const logoutBtn = document.createElement('a');
+                        logoutBtn.href = "#";
+                        logoutBtn.className = "nav-signin";
+                        logoutBtn.style.borderColor = "var(--danger)";
+                        logoutBtn.style.color = "var(--danger)";
+                        logoutBtn.innerHTML = "Logout";
+                        logoutBtn.onclick = (e) => {
+                            e.preventDefault();
+                            localStorage.removeItem('driverToken');
+                            window.location.reload();
+                        };
+                        navActions.appendChild(logoutBtn);
+                    }
+                }
+
+                daCards.innerHTML = cardsHTML;
+
+            } else {
+                // Not logged in: show login portals, add sign in button to nav
+                portalsSection.style.display = 'block';
+                dashboardAccess.style.display = 'none';
+                welcomeBanner.style.display = 'none';
+
+                const signinBtn = document.createElement('a');
+                signinBtn.href = "#";
+                signinBtn.className = "nav-signin";
+                signinBtn.textContent = "Sign In";
+                signinBtn.onclick = (e) => { e.preventDefault(); openModal(); };
+                navActions.appendChild(signinBtn);
+            }
+        }
+
+        updateUI();
+
+        // ===== SCROLL TO LOGIN =====
+        function scrollToLogin() {
+            if (isAnyLoggedIn) return;
+            document.getElementById('portals-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ===== STUDENT MODAL =====
+        function openModal() {
+            document.getElementById('login-modal').style.display = 'flex';
+            document.getElementById('google-step1').style.display = 'block';
+            document.getElementById('google-step2').style.display = 'none';
+            document.getElementById('auth-error').style.display = 'none';
+            document.getElementById('auth-success').style.display = 'none';
+        }
+        
+        function closeModal() {
+            document.getElementById('login-modal').style.display = 'none';
+        }
+
+        // ===== DRIVER MODAL =====
+        function openDriverModal() {
+            document.getElementById('driver-login-modal').style.display = 'flex';
+            document.getElementById('driver-auth-error').style.display = 'none';
+            document.getElementById('driver-auth-success').style.display = 'none';
+            document.getElementById('driver-pin-input').value = '';
+        }
+
+        function closeDriverModal() {
+            document.getElementById('driver-login-modal').style.display = 'none';
+        }
+
+        async function attemptDriverLogin() {
+            const pin = document.getElementById('driver-pin-input').value;
+            const errEl = document.getElementById('driver-auth-error');
+            const sucEl = document.getElementById('driver-auth-success');
+
+            if (!pin) {
+                errEl.textContent = 'Please enter your PIN';
+                errEl.style.display = 'block';
+                sucEl.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pin: pin })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    localStorage.setItem('driverToken', data.token);
+                    sucEl.textContent = 'Authenticated! Redirecting...';
+                    sucEl.style.display = 'block';
+                    errEl.style.display = 'none';
+                    setTimeout(() => { window.location.href = 'driver/driver.html'; }, 800);
+                } else {
+                    errEl.textContent = data.message || 'Security Alert: Invalid PIN.';
+                    errEl.style.display = 'block';
+                    sucEl.style.display = 'none';
+                }
+            } catch (err) {
+                errEl.textContent = 'Cannot connect to server. Is the backend running?';
+                errEl.style.display = 'block';
+                sucEl.style.display = 'none';
+            }
+        }
+
+        // Enter key support for driver PIN
+        document.getElementById('driver-pin-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') attemptDriverLogin();
+        });
+
+        // ===== STUDENT AUTH =====
+        function showError(msg) {
+            const el = document.getElementById('auth-error');
+            el.textContent = msg; el.style.display = 'block';
+            document.getElementById('auth-success').style.display = 'none';
+        }
+        function showSuccess(msg) {
+            const el = document.getElementById('auth-success');
+            el.textContent = msg; el.style.display = 'block';
+            document.getElementById('auth-error').style.display = 'none';
+        }
+
+        // Google Sign-In callback
+        function handleGoogleResponse(response) {
+            pendingGoogleCredential = response.credential;
+
+            fetch(`${API_BASE_URL}/auth/google/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential: response.credential })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    localStorage.setItem('studentToken', data.token);
+                    localStorage.setItem('studentName', data.name);
+                    localStorage.setItem('studentReg', data.regNumber);
+                    localStorage.setItem('studentAddress', data.address);
+                    showSuccess(`Welcome back, ${data.name}! Redirecting...`);
+                    setTimeout(() => { window.location.href = `student/student.html?id=${data.regNumber}`; }, 800);
+                } else if (data.needsRegistration) {
+                    document.getElementById('google-step1').style.display = 'none';
+                    document.getElementById('google-step2').style.display = 'block';
+                    document.getElementById('google-welcome').textContent = `Welcome, ${data.name}! 👋`;
+                    document.getElementById('auth-error').style.display = 'none';
+                } else {
+                    showError(data.message || 'Google sign-in failed');
+                }
+            })
+            .catch(() => showError('Cannot connect to server. Is the backend running?'));
+        }
+
+        // Step 2: Complete registration
+        async function completeGoogleRegistration() {
+            const regNumber = document.getElementById('g-reg-number').value.trim().toUpperCase();
+            const address = document.getElementById('g-address').value.trim();
+
+            if (!regNumber || !/^[A-Z0-9]{5,15}$/i.test(regNumber)) {
+                return showError('Enter a valid registration number');
+            }
+            if (!address) {
+                return showError('Address is required');
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/auth/google/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential: pendingGoogleCredential, regNumber, address })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('studentToken', data.token);
+                    localStorage.setItem('studentName', data.name);
+                    localStorage.setItem('studentReg', data.regNumber);
+                    localStorage.setItem('studentAddress', data.address);
+                    showSuccess('Account created! Redirecting...');
+                    setTimeout(() => { window.location.href = `student/student.html?id=${data.regNumber}`; }, 1000);
+                } else {
+                    showError(data.message);
+                }
+            } catch (err) {
+                showError('Cannot connect to server. Is the backend running?');
+            }
+        }
+
+        // Initialize Google Sign-In
+        window.addEventListener('load', () => {
+            if (typeof google !== 'undefined' && google.accounts) {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleResponse
+                });
+                google.accounts.id.renderButton(
+                    document.getElementById('google-signin-btn'),
+                    { theme: 'outline', size: 'large', width: 300, text: 'signin_with', shape: 'pill' }
+                );
+            }
+        });
+    </script>
+</body>
+</html>

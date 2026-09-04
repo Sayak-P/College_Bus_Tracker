@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusFlow - Nearby</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared.css">
+    <style>
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 60px 40px; }
+
+        .header-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 50px; }
+        .header-title h1 { font-size: 4rem; font-weight: 800; margin: 0 0 20px 0; line-height: 1.1; letter-spacing: -2px; color: #fde68a; max-width: 500px; }
+        .header-title p { font-size: 1rem; color: var(--text-muted); line-height: 1.6; max-width: 400px; margin: 0; }
+        
+        .search-bar { position: relative; width: 350px; }
+        .search-bar input {
+            width: 100%; padding: 18px 20px 18px 45px; border-radius: 30px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);
+            color: white; font-size: 14px; box-sizing: border-box; transition: 0.3s;
+        }
+        .search-bar input:focus { outline: none; border-color: var(--accent-gold); }
+        .search-icon { position: absolute; left: 18px; top: 18px; color: var(--text-muted); }
+
+        .layout-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 40px; margin-bottom: 60px; }
+
+        /* Left Side */
+        .left-col { display: flex; flex-direction: column; gap: 20px; }
+        .map-card { 
+            background: var(--surface-color); border: 1px solid var(--border-color); 
+            border-radius: 24px; height: 450px; position: relative; overflow: hidden;
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 30px;
+        }
+        .map-bg {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.2;
+            background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.1) 0%, transparent 60%);
+        }
+        .map-pin { position: absolute; font-size: 200px; top: 10%; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.05); pointer-events:none;}
+
+        .map-footer {
+            position: relative; z-index: 2; background: rgba(11,14,20,0.8); backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color); border-radius: 16px; padding: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .mf-label { font-size: 9px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; display: block; }
+        .mf-title { margin: 0; font-size: 1.2rem; font-weight: 700; }
+        .crosshair-btn { width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items:center; justify-content:center; cursor: pointer; transition: 0.3s; color: var(--accent-gold); font-size: 18px; }
+        .crosshair-btn:hover { background: rgba(252,211,77,0.2); }
+
+        .smart-rec {
+            background: var(--surface-color); border: 1px solid var(--border-color);
+            border-radius: 24px; padding: 30px;
+        }
+        .sr-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .sr-title span { color: var(--accent-gold); }
+        .smart-rec p { font-size: 13px; color: var(--text-muted); line-height: 1.7; margin-bottom: 25px; }
+        .btn-full { width: 100%; padding: 16px; background: rgba(252,211,77,0.1); color: var(--accent-gold); border: 1px solid rgba(252,211,77,0.3); border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.3s; }
+        .btn-full:hover { background: var(--accent-gold); color: #000; }
+
+        /* Right Side Stops List */
+        .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+        .stop-card {
+            background: var(--surface-color); border: 1px solid var(--border-color);
+            border-radius: 24px; padding: 30px; position: relative;
+            transition: 0.3s;
+        }
+        .stop-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-3px); }
+
+        .sc-dist { font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.08); padding: 5px 10px; border-radius: 20px; color: var(--text-muted); margin-right: 15px; }
+        .sc-id { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+        .sc-name { font-size: 1.8rem; font-weight: 800; margin: 15px 0 25px 0; letter-spacing: -0.5px; }
+        
+        .stop-route-item {
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; transition: 0.3s; cursor: pointer;
+        }
+        .stop-route-item:hover { background: rgba(255,255,255,0.04); }
+
+        .route-bullet { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items:center; justify-content:center; font-weight: 700; font-size: 12px; margin-right: 15px; }
+        .bullet-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .bullet-gold { background: rgba(252, 211, 77, 0.2); color: var(--accent-gold); }
+        .bullet-green { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .bullet-red { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+        .route-info h4 { margin: 0 0 4px 0; font-size: 14px; font-weight: 600; }
+        .route-info p { margin: 0; font-size: 11px; color: var(--text-muted); }
+
+        .time-info { text-align: right; }
+        .time-info h3 { margin: 0 0 4px 0; font-size: 1.1rem; font-weight: 800; }
+        .time-info p { margin: 0; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+        
+        .icon-btn { position: absolute; right: 30px; top: 30px; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border-color); display: flex; align-items:center; justify-content:center; color: var(--text-muted); font-size: 18px; cursor: pointer; transition: 0.3s; }
+        .icon-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+
+        .loading-spinner { display: flex; justify-content: center; align-items: center; padding: 40px; font-size: 14px; color: var(--text-muted); gap: 12px; }
+        .spinner { width: 20px; height: 20px; border: 3px solid var(--border-color); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error-msg { text-align: center; padding: 40px; color: var(--danger); font-weight: 600; }
+
+        body.light-mode h1 { color: #c2410c; }
+        body.light-mode .map-card, body.light-mode .smart-rec, body.light-mode .stop-card { background: #ffffff; border-color: rgba(0,0,0,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        body.light-mode .sc-name, body.light-mode .time-info h3 { color: #000; }
+        body.light-mode .route-info h4 { color: #000; }
+        body.light-mode .stop-route-item:hover { background: rgba(0,0,0,0.03); }
+    </style>
+</head>
+<body>
+    <script>if (localStorage.getItem("theme") === "light") document.body.classList.add("light-mode");</script>
+
+    <nav>
+        <div class="logo">CampusFlow</div>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="student.html">Tracking</a>
+            <a href="routes.html">Routes</a>
+            <a href="nearby.html" class="active">Nearby</a>
+            <a href="arrivals.html">Arrivals</a>
+        </div>
+        <div class="nav-actions" id="nav-actions">
+            <!-- Auth injected via JS -->
+        </div>
+    </nav>
+    <script>
+        if (!localStorage.getItem('studentToken')) {
+            window.location.href = '../index.html';
+        } else {
+            document.addEventListener('DOMContentLoaded', () => {
+                const navActions = document.getElementById('nav-actions');
+                navActions.innerHTML = `
+                    <a href="#" class="btn-nav-gold" style="background: var(--danger); color: #fff; padding: 8px 16px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 700;" onclick="logoutHandler(event)">Logout</a>
+                `;
+            });
+        }
+        function logoutHandler(e) {
+            e.preventDefault();
+            localStorage.removeItem('studentToken');
+            localStorage.removeItem('studentName');
+            localStorage.removeItem('studentReg');
+            localStorage.removeItem('studentAddress');
+            window.location.href = '../index.html';
+        }
+    </script>
+
+    <div class="container">
+        
+        <div class="header-section">
+            <div class="header-title">
+                <h1>Find your next departure point.</h1>
+                <p id="header-desc">Locating nearby stops using your GPS position. Updated in real-time.</p>
+            </div>
+            <div class="search-bar">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="stop-search" placeholder="Search stop names..." oninput="filterStops()">
+            </div>
+        </div>
+
+        <div class="layout-grid">
+            <!-- Left map/recommendation -->
+            <div class="left-col">
+                <div class="map-card">
+                    <div class="map-bg"></div>
+                    <div class="map-pin">📍</div>
+                    <div class="map-footer">
+                        <div>
+                            <span class="mf-label">CURRENT POSITION</span>
+                            <h3 class="mf-title" id="user-location-name">Detecting location...</h3>
+                        </div>
+                        <div class="crosshair-btn" onclick="getUserLocation()">⌖</div>
+                    </div>
+                </div>
+
+                <div class="smart-rec" id="smart-rec">
+                    <div class="sr-title"><span>✨</span> Smart Recommendation</div>
+                    <p id="rec-text">Analyzing nearby stops for the best route...</p>
+                    <button class="btn-full" id="rec-btn" style="display:none;">Track Live Route</button>
+                </div>
+            </div>
+
+            <!-- Right list -->
+            <div class="right-col" id="stops-container">
+                <div class="loading-spinner"><div class="spinner"></div> Loading nearby stops...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <div><b>CampusFlow</b></div>
+        <div style="display:flex; gap: 24px;">
+            <span>Privacy</span><span>Terms</span><span>Support</span><span>Contact</span>
+            <span style="margin-left:40px;">&copy; 2026 CampusFlow. All rights reserved.</span>
+        </div>
+    </footer>
+
+    <script src="../config.js"></script>
+    <script>
+        let allStops = [];
+        let allRoutes = [];
+        let userLat = null, userLng = null;
+
+        const bulletColors = ['bullet-blue', 'bullet-gold', 'bullet-green', 'bullet-red'];
+
+        // Haversine distance in km
+        function haversine(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function parseArrivalTime(timeStr) {
+            if (!timeStr) return null;
+            const cleaned = timeStr.replace(/\s+/g, '').toUpperCase();
+            const match = cleaned.match(/(\d{1,2}):(\d{2})(AM|PM)/);
+            if (!match) return null;
+            let hours = parseInt(match[1]);
+            const mins = parseInt(match[2]);
+            const ampm = match[3];
+            if (ampm === 'PM' && hours !== 12) hours += 12;
+            if (ampm === 'AM' && hours === 12) hours = 0;
+            const d = new Date();
+            d.setHours(hours, mins, 0, 0);
+            return d;
+        }
+
+        function minsUntil(date) {
+            if (!date) return 999;
+            return Math.round((date - new Date()) / 60000);
+        }
+
+        // Find routes that pass through a given stop name
+        function findRoutesForStop(stopName) {
+            const results = [];
+            const nameUpper = stopName.toUpperCase();
+            allRoutes.forEach(route => {
+                const stoppages = route.stoppages || [];
+                const match = stoppages.find(s => s.name.toUpperCase().includes(nameUpper) || nameUpper.includes(s.name.toUpperCase()));
+                if (match) {
+                    const arrTime = parseArrivalTime(route.arrivalAtIter);
+                    const mins = minsUntil(arrTime);
+                    results.push({ routeId: route.routeId, stopTime: match.time, minsToIter: mins, busNumber: route.busNumber });
+                }
+            });
+            return results.sort((a, b) => a.minsToIter - b.minsToIter);
+        }
+
+        function getRouteCode(routeId) {
+            const parts = routeId.split(/[\s-]+/);
+            return (parts[0] || '?')[0].toUpperCase() + (parts.find(p => /^\d/.test(p)) || '1');
+        }
+
+        function renderStops(stops) {
+            const container = document.getElementById('stops-container');
+            if (stops.length === 0) {
+                container.innerHTML = `<div class="error-msg">No bus stops found nearby. Try expanding your search.</div>`;
+                return;
+            }
+
+            let html = '';
+            stops.forEach((stop, i) => {
+                const distStr = stop.distance < 1 ? `${Math.round(stop.distance * 1000)} m` : `${stop.distance.toFixed(1)} km`;
+                const routes = findRoutesForStop(stop.name);
+
+                let routeItemsHTML = '';
+                if (routes.length === 0) {
+                    routeItemsHTML = `<p style="font-size:13px; font-style:italic; margin:0; color:var(--text-muted);">No routes matched for this stop.</p>`;
+                } else {
+                    routes.slice(0, 3).forEach((r, ri) => {
+                        const etaLabel = r.minsToIter <= 0 ? 'ARRIVED' : `${r.minsToIter}m`;
+                        const code = getRouteCode(r.routeId);
+                        routeItemsHTML += `
+                        <div class="stop-route-item" onclick="window.location.href='student.html?route=${encodeURIComponent(r.routeId)}'">
+                            <div style="display:flex; align-items:center;">
+                                <div class="route-bullet ${bulletColors[ri % bulletColors.length]}">${code}</div>
+                                <div class="route-info">
+                                    <h4>${r.routeId}</h4>
+                                    <p>Pickup at ${r.stopTime}</p>
+                                </div>
+                            </div>
+                            <div class="time-info">
+                                <h3>${etaLabel}</h3>
+                                <p>TO ITER</p>
+                            </div>
+                        </div>`;
+                    });
+                }
+
+                html += `
+                <div class="stop-card" data-stop-name="${stop.name.toLowerCase()}">
+                    <div class="icon-btn">🚌</div>
+                    <div style="display:flex; align-items:center; margin-bottom: 10px;">
+                        <span class="sc-dist">${distStr}</span>
+                        <span class="sc-id">${routes.length} route${routes.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <h2 class="sc-name">${stop.name}</h2>
+                    ${routeItemsHTML}
+                </div>`;
+            });
+
+            container.innerHTML = html;
+
+            // Update smart recommendation with nearest stop + soonest route
+            if (stops.length > 0) {
+                const nearestStop = stops[0];
+                const nearestRoutes = findRoutesForStop(nearestStop.name);
+                const recText = document.getElementById('rec-text');
+                const recBtn = document.getElementById('rec-btn');
+                if (nearestRoutes.length > 0) {
+                    const best = nearestRoutes[0];
+                    recText.innerHTML = `The <b>${nearestStop.name}</b> stop is ${nearestStop.distance < 1 ? Math.round(nearestStop.distance * 1000) + 'm' : nearestStop.distance.toFixed(1) + 'km'} away. <b>${best.routeId}</b> arrives at ITER in ${best.minsToIter > 0 ? best.minsToIter + ' mins' : 'NOW'}.`;
+                    recBtn.style.display = 'block';
+                    recBtn.onclick = () => window.location.href = `student.html?route=${encodeURIComponent(best.routeId)}`;
+                } else {
+                    recText.textContent = `${nearestStop.name} is your nearest stop (${nearestStop.distance < 1 ? Math.round(nearestStop.distance * 1000) + 'm' : nearestStop.distance.toFixed(1) + 'km'} away).`;
+                }
+            }
+        }
+
+        function filterStops() {
+            const query = document.getElementById('stop-search').value.toLowerCase();
+            const cards = document.querySelectorAll('.stop-card');
+            cards.forEach(card => {
+                const name = card.getAttribute('data-stop-name') || '';
+                card.style.display = name.includes(query) ? '' : 'none';
+            });
+        }
+
+        function processData() {
+            if (!allStops.length) return;
+
+            let stopsWithDist = allStops.map(s => ({
+                ...s,
+                distance: (userLat && userLng) ? haversine(userLat, userLng, s.lat, s.lng) : 999
+            }));
+
+            stopsWithDist.sort((a, b) => a.distance - b.distance);
+            // Only show stops within 10km (reasonable bus range)
+            stopsWithDist = stopsWithDist.filter(s => s.distance < 10);
+
+            renderStops(stopsWithDist.slice(0, 10));
+        }
+
+        function getUserLocation() {
+            if (!navigator.geolocation) {
+                document.getElementById('user-location-name').textContent = 'GPS not supported';
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    userLat = pos.coords.latitude;
+                    userLng = pos.coords.longitude;
+                    document.getElementById('user-location-name').textContent = `${userLat.toFixed(4)}°N, ${userLng.toFixed(4)}°E`;
+                    document.getElementById('header-desc').textContent = `Showing stops nearest to your GPS location. Updated in real-time.`;
+                    processData();
+                },
+                (err) => {
+                    console.warn('Geolocation error:', err);
+                    document.getElementById('user-location-name').textContent = 'Location access denied';
+                    document.getElementById('header-desc').textContent = `Could not access your location. Showing all stops.`;
+                    // Show all stops without distance sorting
+                    processData();
+                }
+            );
+        }
+
+        // Fetch data from APIs
+        Promise.all([
+            fetch(`${API_BASE_URL}/api/stops`).then(r => r.json()),
+            fetch(`${API_BASE_URL}/api/routes`).then(r => r.json())
+        ]).then(([stops, routes]) => {
+            allStops = stops;
+            allRoutes = routes;
+            getUserLocation();
+        }).catch(err => {
+            console.error('Failed to load data:', err);
+            document.getElementById('stops-container').innerHTML = `<div class="error-msg">⚠️ Could not connect to the server. Please make sure the backend is running.</div>`;
+        });
+    </script>
+</body>
+</html>

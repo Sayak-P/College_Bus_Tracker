@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Driver - Live Map</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    
+    <script src="../config.js"></script>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <link rel="stylesheet" href="../shared.css">
+    <style>
+
+        body { text-align: center; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* App Layout */
+        .app-container { display: flex; flex: 1; position: relative; width: 100%; height: 100%; }
+        
+        #login-section {
+            position: absolute; top:0; left:0; right:0; bottom:0; z-index: 3000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: radial-gradient(circle at center, #1a1f29 0%, #0b0e14 100%);
+        }
+        .login-box { 
+            background: var(--surface-color); padding: 40px; border-radius: 24px; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8); width: 320px;
+            border: 1px solid var(--border-color); color: white;
+        }
+
+        #driver-dashboard {
+            width: 100%; height: 100%; display: flex; flex-direction: column; position: relative;
+        }
+
+        #map { flex: 1; z-index: 1; background: #0b0e14; height: 100%; width: 100%; }
+
+        #controls {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; background: var(--surface-color); padding: 24px; border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); width: 90%; max-width: 400px;
+            border: 1px solid var(--border-color); color: #ffffff;
+        }
+
+        h2 { margin: 0 0 20px 0; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; color: var(--accent-gold); }
+        
+        select, input { 
+            width: 100%; padding: 16px; margin-bottom: 16px; 
+            border-radius: 12px; border: 1px solid var(--border-color); 
+            font-size: 14px; box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.03); color: #fff;
+            transition: 0.3s;
+        }
+        select option { background: var(--surface-color); color: white; }
+        
+        input:focus, select:focus { outline: none; border-color: var(--accent-gold); background: rgba(255, 255, 255, 0.05); }
+
+        .btn { 
+            width: 100%; padding: 16px; background: var(--accent-gold); color: #000; 
+            border: none; border-radius: 12px; font-weight: 700; cursor: pointer; 
+            font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(252, 211, 77, 0.3);
+        }
+        .btn:hover { background-color: #fde68a; box-shadow: 0 6px 20px rgba(252, 211, 77, 0.5); transform: translateY(-1px); }
+        
+        #status { font-weight: 800; color: var(--text-muted); margin-bottom: 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .leaflet-routing-container { display: none !important; }
+        .hidden { display: none !important; }
+
+        .bus-icon {
+            font-size: 18px; text-align: center; line-height: 34px;
+            width: 34px !important; height: 34px !important;
+            border-radius: 50%; background-color: var(--accent-gold); color: #000;
+            border: 2px solid #000; box-shadow: 0 0 15px rgba(252, 211, 77, 0.5);
+            margin-left: -17px !important; margin-top: -17px !important;
+        }
+
+        body.light-mode .btn-dark, body.light-mode .btn-outline { background: #f1f5f9; color: #000; border-color: rgba(0,0,0,0.1); }
+        body.light-mode .btn-dark:hover, body.light-mode .btn-outline:hover { background: #e2e8f0; }
+
+    </style>
+</head>
+<body>
+    <script>if (localStorage.getItem("theme") === "light") document.body.classList.add("light-mode");</script>
+
+    <nav>
+        <div class="logo">CampusFlow</div>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="#">Tracking</a>
+            <a href="#">Routes</a>
+            <a href="#">Nearby</a>
+            <a href="#">Arrivals</a>
+        </div>
+        <div class="nav-actions">
+            <button class="theme-toggle" onclick="document.body.classList.toggle('light-mode'); localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');" style="background:rgba(255,255,255,0.05);color:var(--text-main);border:1px solid var(--border-color);width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:16px;">☀️</button>
+            <a href="#" onclick="localStorage.removeItem('driverToken'); window.location.href='../index.html'; return false;" style="background:var(--danger,#ef4444);color:#fff;padding:8px 16px;border-radius:20px;text-decoration:none;font-size:13px;font-weight:700;">Logout</a>
+        </div>
+    </nav>
+    <div class="app-container">
+        <div id="login-section">
+            <div class="login-box">
+                <h2>Driver Portal</h2>
+                <input type="password" id="pin-input" placeholder="Enter Driver PIN" autocomplete="current-password">
+                <button class="btn" onclick="attemptLogin()">Connect System</button>
+                <p id="login-error" style="color: #ef4444; display: none; font-size: 13px; font-weight: 600; margin-top:10px;">Security Alert: Invalid PIN.</p>
+            </div>
+        </div>
+
+        <div id="driver-dashboard" class="hidden">
+            <div id="controls">
+                <h2>Broadcast Dashboard</h2>
+                <select id="routeSelect">
+                    <option value="">Loading routes...</option>
+                </select>
+                <div id="status">Status: Offline / Not Tracking</div>
+                <button id="startBtn" class="btn" onclick="startTracking()">Start Broadcast</button>
+            </div>
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+    <script>
+        // FIX 2: Point socket to the backend server
+        const socket = io(API_BASE_URL);
+        let watchId = null;
+        let driverToken = localStorage.getItem('driverToken') || null; 
+        let driverMarker;
+        let routeControl;
+
+        // Initialize Map
+        const map = L.map('map').setView([20.2961, 85.8245], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        const collegeLocation = L.latLng(20.2496, 85.8002);
+        
+        // Highlight College Area Outline
+        const campusOutline = [
+            [20.2520, 85.7980], // NW Corner
+            [20.2520, 85.8030], // NE Corner
+            [20.2475, 85.8030], // SE Corner
+            [20.2450, 85.8010], // S Point
+            [20.2475, 85.7980]  // SW Corner
+        ];
+        L.polygon(campusOutline, {
+            color: '#ca8a04',
+            weight: 4,
+            fillColor: '#ca8a04',
+            fillOpacity: 0.1,
+            dashArray: '5, 5'
+        }).addTo(map);
+
+        L.marker(collegeLocation).addTo(map).bindPopup('<b>ITER Campus</b>');
+
+        const busIcon = L.divIcon({ html: '🚌', className: 'bus-icon', iconSize: [40, 40] });
+
+        // Dynamically load routes into the dropdown
+        fetch(`${API_BASE_URL}/api/routes`)
+            .then(res => res.json())
+            .then(routes => {
+                const selectElement = document.getElementById('routeSelect');
+                selectElement.innerHTML = ''; // clear loading text
+                routes.forEach(route => {
+                    const opt = document.createElement('option');
+                    opt.value = route.routeId;
+                    opt.textContent = `${route.routeId} [${route.departureFromIter}] - ${route.classTime}`;
+                    selectElement.appendChild(opt);
+                });
+            })
+            .catch(err => console.error("Error fetching routes:", err));
+
+        // Auto-skip login if already authenticated from landing page
+        if (driverToken) {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('driver-dashboard').classList.remove('hidden');
+            setTimeout(() => map.invalidateSize(), 100);
+        }
+
+        async function attemptLogin() {
+            const pin = document.getElementById('pin-input').value;
+            // Point fetch to the backend server
+            const response = await fetch(`${API_BASE_URL}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: pin })
+            });
+            const data = await response.json();
+            if (data.success) {
+                localStorage.setItem('driverToken', data.token);
+                driverToken = data.token;
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('driver-dashboard').classList.remove('hidden');
+                setTimeout(() => map.invalidateSize(), 100);
+            } else {
+                document.getElementById('login-error').innerText = data.message || "Security Alert: Invalid PIN.";
+                document.getElementById('login-error').style.display = 'block';
+            }
+        }
+
+        function startTracking() {
+            if (!navigator.geolocation) {
+                alert("GPS not supported.");
+                return;
+            }
+            const selectedRoute = document.getElementById('routeSelect').value;
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerText = `Broadcasting: ${selectedRoute}`;
+            statusDiv.style.color = "var(--accent-gold)"; 
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('routeSelect').disabled = true;
+
+            watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const driverLatLng = L.latLng(lat, lng);
+
+                    socket.emit('send-location', { 
+                        lat, lng, routeId: selectedRoute, token: driverToken 
+                    });
+
+                    if (!driverMarker) {
+                        driverMarker = L.marker(driverLatLng, { icon: busIcon }).addTo(map);
+                        map.setView(driverLatLng, 15);
+                    } else {
+                        driverMarker.setLatLng(driverLatLng);
+                    }
+
+                    if (routeControl) {
+                        routeControl.setWaypoints([driverLatLng, collegeLocation]);
+                    } else {
+                        routeControl = L.Routing.control({
+                            waypoints: [driverLatLng, collegeLocation],
+                            routeWhileDragging: false,
+                            createMarker: function() { return null; },
+                            lineOptions: { styles: [{color: '#fcd34d', opacity: 0.8, weight: 5}] }
+                        }).addTo(map);
+                    }
+                },
+                (error) => { console.error(error); },
+                { enableHighAccuracy: true }
+            );
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+/* =========================================
+   CampusFlow Shared Styles
+========================================= */
+
+:root {
+    --bg-color: #0b0e14;
+    --surface-color: #12161e;
+    --surface-color-light: #1a1e28;
+    --text-main: #ffffff;
+    --text-muted: #9da5b1;
+    --accent-gold: #fcd34d;
+    --accent-gold-dim: rgba(252, 211, 77, 0.15);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --gradient-overlay: linear-gradient(180deg, rgba(18, 22, 30, 0) 0%, #0b0e14 100%);
+    --danger: #ef4444;
+    --success: #10b981;
+}
+
+body { 
+    margin: 0; padding: 0; 
+    font-family: 'Inter', sans-serif; 
+    background-color: var(--bg-color); 
+    color: var(--text-main); 
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Base Light Mode variables */
+body.light-mode {
+    --bg-color: #fafafa;
+    --surface-color: #ffffff;
+    --surface-color-light: #f1f5f9;
+    --text-main: #000000;
+    --text-muted: #64748b;
+    --accent-gold: #c2410c; /* High contrast orange/gold for reading on white */
+    --accent-gold-dim: rgba(194, 65, 12, 0.1);
+    --border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode nav { background: rgba(255, 255, 255, 0.9); }
+body.light-mode .btn-primary { color: #fff; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.2); }
+
+/* --- Navbar --- */
+nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 24px 60px;
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(11, 14, 20, 0.8);
+    backdrop-filter: blur(20px);
+    position: sticky; top: 0; z-index: 2000;
+}
+
+.logo { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: var(--accent-gold); }
+
+.nav-links { display: flex; gap: 32px; font-size: 14px; font-weight: 600; }
+.nav-links a { color: var(--text-muted); text-decoration: none; transition: color 0.3s; }
+.nav-links a:hover, .nav-links a.active { color: var(--accent-gold); border-bottom: 2px solid var(--accent-gold); padding-bottom: 4px; }
+
+.nav-actions { display: flex; gap: 16px; align-items: center; }
+.nav-actions a { color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 600; transition: 0.3s; }
+.nav-actions a:hover { color: white; }
+
+.theme-toggle {
+    background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--border-color);
+    width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 16px; transition: 0.3s;
+}
+.theme-toggle:hover { background: rgba(255,255,255,0.1); }
+body.light-mode .theme-toggle { background: rgba(0,0,0,0.05); color: black; }
+body.light-mode .theme-toggle:hover { background: rgba(0,0,0,0.1); }
+
+/* Buttons */
+.btn-primary {
+    background: var(--accent-gold); color: #000; text-decoration: none;
+    border: none; padding: 10px 24px;
+    border-radius: 30px; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(252, 211, 77, 0.3);
+}
+.btn-primary:hover { background: #fde68a; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(252, 211, 77, 0.5); }
+
+.btn-outline { 
+    background: transparent; color: var(--text-muted); text-decoration: none;
+    border: 1px solid var(--border-color); padding: 10px 20px; 
+    border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; 
+}
+.btn-outline:hover { background: var(--surface-color-light); border-color: rgba(255,255,255,0.3); }
+
+/* Layout Containers */
+.container { max-width: 1200px; margin: 0 auto; padding: 60px 40px; }
+.app-container { display: flex; flex: 1; position: relative; width: 100%; height: 100%; }
+
+/* --- Footer --- */
+footer { 
+    display: flex; justify-content: space-between; align-items: center; padding: 40px 60px;
+    border-top: 1px solid var(--border-color); font-size: 13px; color: var(--text-muted); margin-top: 40px;
+}
+.footer-links { display: flex; gap: 24px; }
+.footer-links span { cursor: pointer; transition: 0.3s; }
+.footer-links span:hover { color: var(--accent-gold); }
+
+/* Common Modal Styles */
+.close-btn { position: absolute; top: 20px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted); transition: 0.3s; }
+.close-btn:hover { color: white; }
+
+/* Custom Inputs/Selects for forms */
+select, input {
+    width: 100%; padding: 16px; margin-bottom: 16px;
+    background: rgba(255,255,255,0.05); color: white;
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; font-size: 14px;
+    box-sizing: border-box; transition: 0.3s;
+}
+select option { background: var(--surface-color); color: white; }
+input:focus, select:focus { outline: none; border-color: var(--accent-gold); background: rgba(255,255,255,0.08); }
+
+/* Leaflet Overrides */
+.leaflet-routing-container { display: none !important; }
+
+/* Light Mode Input Fixes */
+body.light-mode select, body.light-mode input { background: rgba(0,0,0,0.03); color: black; border-color: rgba(0,0,0,0.15); }
+body.light-mode select option { background: var(--surface-color); color: black; }
+
+
+/* =========================================
+   Driver Dashboard & Summary Shared Styles
+========================================= */
+
+/* Driver Variables & Layout */
+.sidebar {
+    width: 280px; background: #0f110c; border-right: 1px solid var(--border-color);
+    display: flex; flex-direction: column; justify-content: space-between;
+}
+body.light-mode .sidebar { background: #f8fafc; border-right: 1px solid rgba(0,0,0,0.1); }
+
+.sb-header { padding: 30px; }
+.sb-logo { font-size: 20px; font-weight: 800; color: #eab308; letter-spacing: -0.5px; margin-bottom: 40px; }
+
+.profile-card { display: flex; align-items: center; gap: 15px; margin-bottom: 40px; }
+.p-avatar { width: 44px; height: 44px; background: #2dd4bf; border-radius: 50%; display: flex; align-items:flex-end; justify-content:center; overflow:hidden; }
+.p-avatar::after { content: "👤"; font-size: 35px; margin-bottom: -10px; }
+.p-info h4 { margin: 0; font-size: 11px; font-weight: 800; color: #eab308; text-transform: uppercase; letter-spacing: 1px; }
+.p-info p { margin: 4px 0 0 0; font-size: 11px; color: #8b9286; line-height: 1.4; }
+body.light-mode .p-info h4 { color: #c2410c; }
+
+.nav-menu { display: flex; flex-direction: column; gap: 10px; padding: 0 20px; }
+.nav-item { 
+    display: flex; align-items: center; gap: 16px; padding: 14px 20px; 
+    color: #8b9286; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    border-radius: 30px; cursor: pointer; transition: 0.3s;
+}
+.nav-item.active { background: rgba(234, 179, 8, 0.1); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.2); }
+.nav-item:hover:not(.active) { background: rgba(255,255,255,0.03); color: white; }
+body.light-mode .nav-item:hover:not(.active) { background: rgba(0,0,0,0.03); color: #000; }
+.nav-icon { font-size: 16px; width: 24px; text-align: center; }
+
+.sb-footer { padding: 30px; }
+
+/* Driver Top Nav */
+.top-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 25px 40px; border-bottom: 1px solid var(--border-color); background: #0b0c0a;
+}
+body.light-mode .top-nav { background: #fafafa; border-bottom: 1px solid rgba(0,0,0,0.1); }
+
+.tn-left { display: flex; align-items: center; gap: 40px; }
+.tn-logo { font-size: 18px; font-weight: 800; color: #eab308; letter-spacing: -0.5px; }
+.tn-links { display: flex; gap: 24px; font-size: 13px; font-weight: 600; color: #8b9286; }
+.tn-link { cursor: pointer; transition: 0.3s; padding-bottom: 6px; border-bottom: 2px solid transparent; }
+.tn-link.active { color: #eab308; border-bottom-color: #eab308; }
+.tn-link:hover:not(.active) { color: white; }
+body.light-mode .tn-link:hover:not(.active) { color: #000; }
+.tn-right { display: flex; gap: 20px; font-size: 18px; color: #8b9286; }
+
+/* Driver Footer */
+.app-footer { display: flex; justify-content: space-between; padding: 25px 40px; border-top: 1px solid var(--border-color); font-size: 11px; font-weight: 600; color: #8b9286; background: #0b0c0a; }
+body.light-mode .app-footer { background: #fafafa; border-top: 1px solid rgba(0,0,0,0.1); }
+.af-links { display: flex; gap: 24px; }
+
+
+/* =========================================
+   Mobile Responsiveness (Global)
+========================================= */
+@media (max-width: 800px) {
+    /* Navbar & Header */
+    nav, .top-nav { flex-direction: column; padding: 20px; gap: 15px; text-align: center; }
+    .nav-links, .tn-left, .tn-links { flex-wrap: wrap; justify-content: center; gap: 15px; align-items: center; }
+    .nav-actions { flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+    .tn-left, .tn-right { width: 100%; justify-content: center; }
+    
+    /* Container & Typography */
+    .container { padding: 30px 20px; }
+    h1 { font-size: 2.2rem !important; }
+    .hero h1 { font-size: 2.5rem !important; }
+    .page-header { flex-direction: column; gap: 20px; margin-bottom: 30px; }
+    .header-right { width: 100%; justify-content: center; box-sizing: border-box; }
+    
+    /* Form & Interaction */
+    .search-wrapper { flex-direction: column; display: flex; width: 100%; box-sizing: border-box; }
+    .search-wrapper input, .search-wrapper button { width: 100%; border-radius: 12px !important; margin: 5px 0; }
+    
+    /* Layouts & Grids Flattening */
+    .bento-grid, .grid-layout, .roles-grid, .features-grid, .main-content, .hud-grid, .card-row-2 { 
+        display: flex !important; 
+        flex-direction: column !important; 
+        gap: 20px;
+    }
+    
+    .card, .c-r1, .c-img, .c-r2, .c-service, .c-r3, .c-data, .card-nav, .card-perf, .card-map, .card-charge, .card-cap, .card-dispatch {
+        grid-column: span 12 !important; width: 100% !important; box-sizing: border-box; padding: 25px; margin-left: 0 !important;
+    }
+    
+    /* Inner Specific Components */
+    .bot-row { display: flex; flex-direction: column; grid-column: auto; }
+    .c-img { min-height: 200px; }
+    .r2-stats, .c-r1-stats, .nav-stats { flex-direction: column; gap: 15px; }
+    .c-data-top, .c-r1-top { flex-direction: column; gap: 15px; align-items: flex-start; }
+    .data-right { text-align: left; }
+    .occ-ring { margin-top: 20px; }
+    .co-left h2 { font-size: 2rem !important; }
+    
+    /* Driver App Mobile Layout */
+    body { flex-direction: column !important; }
+    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); }
+    .nav-menu { flex-direction: row; flex-wrap: wrap; justify-content: center; padding: 15px 10px; }
+    .nav-item { padding: 10px 15px; font-size: 10px; }
+    .profile-card { justify-content: center; margin-bottom: 20px; margin-top: 20px; }
+    .sb-logo { text-align: center; margin-bottom: 10px; }
+    .sb-header { padding: 20px; }
+    .sb-footer { padding: 20px; }
+    .dashboard-scroll { padding: 20px !important; flex: none; overflow-y: visible; }
+    .app-footer { flex-direction: column; text-align: center; gap: 15px; padding: 20px; }
+    
+    /* Modal / Popup Adjustments */
+    .modal-content, .login-box { width: 90% !important; padding: 30px !important; }
+    .clock-out { flex-direction: column; text-align: center; gap: 20px; padding: 25px; }
+    .co-actions { flex-direction: column; width: 100%; }
+    .co-actions button { width: 100%; }
+    
+    /* Standard Footer */
+    footer { flex-direction: column; gap: 20px; align-items: center; padding: 30px 20px; text-align: center; }
+    .footer-links { flex-wrap: wrap; justify-content: center; }
+}

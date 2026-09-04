@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusTransit Pro - Driver Dashboard</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="../shared.css">
+    <style>
+        :root {
+            --bg-base: #0b0c0a;     /* Very dark greenish-black base */
+            --surface-bg: #141611;  /* Slightly lighter surface */
+            --sidebar-bg: #0f110c;  
+            --text-main: #ffffff;
+            --text-muted: #8b9286;
+            --accent-gold: #eab308;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(234, 179, 8, 0.1);
+            --card-surface: #191b14;
+        }
+
+        body { 
+            margin: 0; padding: 0; 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-base); 
+            color: var(--text-main); 
+            display: flex; height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .btn-dark:hover { background: rgba(255,255,255,0.1); color: white; }
+
+        /* MAIN APP AREA */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; } 
+
+        /* DASHBOARD GRID */
+        .dashboard-scroll { flex: 1; overflow-y: auto; padding: 40px; }
+        .grid-layout { 
+            display: grid; 
+            grid-template-columns: 2fr 1fr; 
+            grid-template-rows: auto auto auto;
+            gap: 20px; 
+            max-width: 1100px;
+        }
+
+        /* Common Card Styles */
+        .card { background: var(--card-surface); border: 1px solid var(--border-color); border-radius: 20px; padding: 35px; position: relative; }
+
+        /* Card 1: Live Navigation */
+        .card-nav { grid-column: 1 / 2; grid-row: 1 / 2; overflow: hidden; }
+        .tag-nav { background: rgba(234, 179, 8, 0.15); color: var(--accent-gold); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 6px 12px; border-radius: 20px; display: inline-block; margin-bottom: 20px; }
+        .nav-title { font-size: 3rem; font-weight: 800; margin: 0 0 15px 0; display: flex; align-items: center; gap: 15px; }
+        .nav-title span { color: var(--accent-gold); }
+        .nav-path { font-size: 1.1rem; color: var(--text-muted); font-weight: 500; margin: 0 0 40px 0; }
+
+        .nav-stats { display: flex; justify-content: space-between; margin-top: 30px; }
+        .ns-block p { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; margin: 0 0 8px 0; }
+        .ns-block h3 { margin: 0; font-size: 1.6rem; font-weight: 700; color: var(--accent-gold); }
+        .ns-block h3.white { color: #fff; }
+        .ns-sub { font-size: 12px; color: var(--text-muted); margin-top: 5px; font-weight: 600; display: block; }
+        .ns-sub span { color: var(--accent-gold); }
+        .bg-bus-icon { position: absolute; right: 20px; top: 20px; font-size: 180px; color: rgba(255,255,255,0.02); pointer-events: none; line-height: 1; }
+
+        /* Card 2: Performance Rating */
+        .card-perf { grid-column: 2 / 3; grid-row: 1 / 2; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .radial-chart { width: 140px; height: 140px; border-radius: 50%; background: conic-gradient(var(--accent-gold) 85%, rgba(255,255,255,0.1) 0); position: relative; display: flex; align-items: center; justify-content: center; margin-bottom: 30px; }
+        .radial-inner { width: 120px; height: 120px; background: var(--card-surface); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .ri-val { font-size: 2rem; font-weight: 800; margin: 0; line-height: 1; }
+        .ri-lbl { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-top: 5px; }
+        
+        .card-perf h3 { font-size: 1.2rem; font-weight: 700; margin: 0 0 10px 0; }
+        .card-perf p { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin: 0; max-width: 200px; }
+        .card-perf p span { color: var(--accent-gold); font-weight: 700; }
+
+        /* Card 3: Live Route Feed (Map) */
+        .card-map { grid-column: 1 / 2; grid-row: 2 / 4; padding: 0; position: relative; min-height: 250px; background: #0c0e0b; overflow: hidden; border-radius: 20px; border: 1px solid var(--border-color); }
+        .card-map img { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; mix-blend-mode: luminosity; width: 150%; margin-left:-25%; margin-top:-10%; }
+        .map-badge { position: absolute; bottom: 25px; left: 25px; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); color: var(--text-muted); padding: 12px 24px; border-radius: 30px; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 8px; }
+        .map-badge::before { content: ""; width: 6px; height: 6px; background: var(--accent-gold); border-radius: 50%; }
+
+        /* Card 4: Charging */
+        .card-charge { grid-column: 2 / 3; grid-row: 2 / 3; padding: 25px 30px; }
+        .cc-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .cc-icon { font-size: 18px; color: var(--accent-gold); }
+        .cc-lbl { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); }
+        .card-charge h2 { font-size: 2.2rem; margin: 0; font-weight: 800; }
+        .card-charge p { font-size: 11px; color: var(--text-muted); margin: 5px 0 20px 0; }
+        .bar-track { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+        .bar-fill { height: 100%; width: 78%; background: var(--accent-gold); }
+
+        /* Card 5: Capacity */
+        .card-cap { grid-column: 3 / 4; grid-row: 2 / 3; padding: 25px 30px; }
+        .cc-icon-2 { font-size: 18px; color: var(--text-muted); }
+        .bar-track-cap { display: flex; gap: 4px; height: 4px; }
+        .btc-seg { flex: 1; background: rgba(255,255,255,0.1); border-radius: 2px; }
+        .btc-seg.active { background: var(--accent-gold); }
+        
+        /* Card 6: Dispatcher */
+        .card-dispatch { grid-column: 2 / 4; grid-row: 3 / 4; padding: 25px 30px; display: flex; align-items: center; justify-content: space-between; }
+        .cd-left { display: flex; align-items: center; gap: 15px; }
+        .cd-icon { width: 40px; height: 40px; background: rgba(234, 179, 8, 0.1); color: var(--accent-gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .cd-text h4 { margin: 0; font-size: 14px; font-weight: 700; color: #fff; }
+        .cd-text p { margin: 4px 0 0 0; font-size: 11px; color: var(--text-muted); }
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 10px; font-weight: 800; letter-spacing: 1px; cursor: pointer; transition: 0.3s; }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+        /* Footer */
+
+        /* Layout fix for cards 4,5 in same row */
+        .bot-row { display: flex; gap: 20px; grid-column: 2 / 3; grid-row: 2 / 3; }
+        .bot-row > div { flex: 1; }
+        .card-dispatch { grid-column: 2 / 3; grid-row: 3 / 4; }
+
+    
+        /* Light Mode */
+        body.light-mode { --bg-base: #fafafa; --surface-bg: #ffffff; --sidebar-bg: #f8fafc; --text-main: #000000; --text-muted: #64748b; --accent-gold: #ea580c; --accent-light: #f97316; --border-color: rgba(0, 0, 0, 0.1); --card-border: rgba(0, 0, 0, 0.1); --card-surface: #ffffff; }
+        body.light-mode .card, body.light-mode .login-box { background: #ffffff; border: 1px solid rgba(0,0,0,0.1); }
+        body.light-mode .ns-block h3.white { color: #000; }
+        body.light-mode .btn-dark, body.light-mode .btn-outline { background: #f1f5f9; color: #000; border-color: rgba(0,0,0,0.1); }
+        body.light-mode .btn-dark:hover, body.light-mode .btn-outline:hover { background: #e2e8f0; }
+        body.light-mode .clock-out { background: #fff7ed; border-color: #ffedd5; }
+        body.light-mode .btn-outline-gold { background: #fff; border-color: #fed7aa; }
+        body.light-mode .radial-inner { background: #ffffff; }
+        body.light-mode .page-header h1 span { color: #000; }
+        body.light-mode .cs-val, body.light-mode .card-dist h2, body.light-mode .card-rating h2, body.light-mode .co-left h2, body.light-mode .co-text h3 { color: #000; }
+        body.light-mode .cd-text h4 { color: #000; }
+        body.light-mode .login-title { color: #000; }
+        body.light-mode #login-btn { color: #fff; }
+        body.light-mode .btn-gold { background: #ea580c; color: #fff; }
+
+    </style>
+</head>
+<body>
+    <script>if (localStorage.getItem("theme") === "light") document.body.classList.add("light-mode");</script>
+    <script>
+        // Auth guard — must have driver token to view this page
+        if (!localStorage.getItem('driverToken')) {
+            window.location.href = '../index.html';
+        }
+        function driverLogout() {
+            localStorage.removeItem('driverToken');
+            window.location.href = '../index.html';
+        }
+    </script>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div>
+            <div class="sb-header">
+                <div class="sb-logo">CampusTransit Pro</div>
+                <div class="profile-card">
+                    <div class="p-avatar"></div>
+                    <div class="p-info">
+                        <h4 id="driver-name-display">Select Route</h4>
+                        <p id="driver-phone-display">to load driver profile</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-menu">
+                <div class="nav-item active">
+                    <span class="nav-icon">⊞</span> Dashboard
+                </div>
+                <div class="nav-item">
+                    <span class="nav-icon">🚌</span> My Route
+                </div>
+                <div class="nav-item">
+                    <span class="nav-icon">📅</span> Schedule
+                </div>
+                <div class="nav-item">
+                    <span class="nav-icon">📋</span> Shift Summary
+                </div>
+            </div>
+        </div>
+        
+        <div class="sb-footer">
+            <button class="btn-dark" onclick="driverLogout()">End Shift</button>
+        </div>
+    </aside>
+
+    <!-- MAIN APP AREA -->
+    <main class="main-content">
+        
+        <nav class="top-nav">
+            <div class="tn-left">
+                <div class="tn-logo">CampusTransit Pro</div>
+                <div class="tn-links">
+                    <div class="tn-link active">On Duty</div>
+                    <div class="tn-link">Next Stop: Library</div>
+                    <div class="tn-link">GPS Active</div>
+                </div>
+            </div>
+            <div class="tn-right">
+                <span>🔔</span>
+                <span style="border: 2px solid var(--text-muted); border-radius:50%; width: 24px; height: 24px; display:inline-flex; align-items:center; justify-content:center; font-size:14px;">👤</span>
+            </div>
+        </nav>
+
+        <div class="dashboard-scroll">
+            <div class="grid-layout">
+                
+                <!-- Live Navigation -->
+                <div class="card card-nav">
+                    <div class="bg-bus-icon">🚌</div>
+                    <div class="tag-nav">LIVE NAVIGATION</div>
+                    <h1 class="nav-title">
+                        <select id="routeSelect" style="background: transparent; border: none; color: #fff; font-size: 24px; font-weight: 800; outline: none; border-bottom: 2px solid var(--accent-gold); max-width: 100%;">
+                            <option value="">Loading routes...</option>
+                        </select>
+                    </h1>
+                    <p class="nav-path" id="display-path">Select a route above</p>
+                    
+                    <div class="nav-stats">
+                        <div class="ns-block">
+                            <p>BUS NUMBER</p>
+                            <h3 id="display-bus">--</h3>
+                            <span class="ns-sub">Assigned Vehicle</span>
+                        </div>
+                        <div class="ns-block">
+                            <p>ARRIVAL AT ITER</p>
+                            <h3 class="white" id="display-arrival">--:--</h3>
+                            <span class="ns-sub">Scheduled</span>
+                        </div>
+                        <div class="ns-block">
+                            <p>BROADCAST</p>
+                            <button id="startBtn" onclick="startTracking()" style="background: var(--accent-gold); color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase;">Start GPS</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance -->
+                <div class="card card-perf">
+                    <div class="radial-chart">
+                        <div class="radial-inner">
+                            <h2 class="ri-val">85%</h2>
+                            <span class="ri-lbl">ON-TIME</span>
+                        </div>
+                    </div>
+                    <h3>Performance Rating</h3>
+                    <p>Current shift efficiency is exceeding average by <span>+4%</span></p>
+                </div>
+
+                <!-- Live Route Feed -->
+                <div class="card-map">
+                    <div id="map" style="width: 100%; height: 100%; position: absolute; top:0; left:0; z-index: 1;"></div>
+                    <div class="map-badge" style="z-index: 2;">LIVE ROUTE FEED</div>
+                </div>
+
+                <div class="bot-row">
+                    <!-- Charging -->
+                    <div class="card card-charge">
+                        <div class="cc-header">
+                            <span class="cc-icon">⚡</span>
+                            <span class="cc-lbl">CHARGING</span>
+                        </div>
+                        <h2>78%</h2>
+                        <p>Est. range: <b>124 miles</b></p>
+                        <div class="bar-track"><div class="bar-fill"></div></div>
+                    </div>
+
+                    <!-- Capacity -->
+                    <div class="card card-charge">
+                        <div class="cc-header">
+                            <span class="cc-icon-2">👥</span>
+                            <span class="cc-lbl">CAPACITY</span>
+                        </div>
+                        <h2>High</h2>
+                        <p>Increasing at <b>Union Hub</b></p>
+                        <div class="bar-track-cap">
+                            <div class="btc-seg active"></div>
+                            <div class="btc-seg active"></div>
+                            <div class="btc-seg active"></div>
+                            <div class="btc-seg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Helper Details -->
+                <div class="card card-dispatch">
+                    <div class="cd-left">
+                        <div class="cd-icon">🎫</div>
+                        <div class="cd-text">
+                            <h4>Helper: <span id="helper-name-display">--</span></h4>
+                            <p>Phone: <span id="helper-phone-display">--</span></p>
+                        </div>
+                    </div>
+                    <a href="#" id="call-helper-btn" class="btn-outline" style="text-decoration:none;">CALL HELPER</a>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="app-footer">
+            <div>&copy; 2026 Campus Transit Systems</div>
+            <div class="af-links">
+                <span>Emergency Support</span>
+                <span>Dispatch</span>
+                <span>Maintenance Request</span>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="../config.js"></script>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const socket = io(API_BASE_URL);
+        let watchId = null;
+        let driverToken = localStorage.getItem('driverToken') || null; 
+        let driverMarker;
+        let routesData = [];
+
+        // Initialize Map
+        const map = L.map('map').setView([20.2961, 85.8245], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        const collegeLocation = L.latLng(20.2496, 85.8002);
+        L.marker(collegeLocation).addTo(map).bindPopup('<b>ITER Campus</b>');
+
+        const busIcon = L.divIcon({ html: '🚌', className: 'bus-icon', iconSize: [40, 40] });
+
+        // Fetch Routes
+        fetch(`${API_BASE_URL}/api/routes`)
+            .then(res => res.json())
+            .then(routes => {
+                routesData = routes;
+                const selectElement = document.getElementById('routeSelect');
+                selectElement.innerHTML = '<option value="">Select Route to Broadcast...</option>';
+                routes.forEach(route => {
+                    const opt = document.createElement('option');
+                    opt.value = route.routeId;
+                    opt.textContent = `${route.routeId} [${route.busNumber}]`;
+                    opt.style.color = "#000"; // for visibility in dropdown
+                    selectElement.appendChild(opt);
+                });
+            })
+            .catch(err => console.error("Error fetching routes:", err));
+
+        document.getElementById('routeSelect').addEventListener('change', (e) => {
+            const selected = routesData.find(r => r.routeId === e.target.value);
+            if (selected) {
+                document.getElementById('display-path').innerText = `${selected.stoppages[0]?.name || '--'} → ITER`;
+                document.getElementById('display-arrival').innerText = selected.arrivalAtIter;
+                document.getElementById('display-bus').innerText = selected.busNumber;
+                
+                document.getElementById('driver-name-display').innerText = selected.driver?.name || "Driver Unknown";
+                document.getElementById('driver-phone-display').innerText = `Phone: ${selected.driver?.phone || "--"}`;
+                
+                document.getElementById('helper-name-display').innerText = selected.conductor?.name || "Unknown";
+                const helperPhone = selected.conductor?.phone || "--";
+                document.getElementById('helper-phone-display').innerText = helperPhone;
+                
+                const callBtn = document.getElementById('call-helper-btn');
+                if(helperPhone !== "--") {
+                    callBtn.href = `tel:${helperPhone}`;
+                    callBtn.style.display = 'inline-block';
+                } else {
+                    callBtn.removeAttribute('href');
+                    callBtn.style.display = 'none';
+                }
+                
+            } else {
+                document.getElementById('display-path').innerText = `Select a route above`;
+                document.getElementById('display-arrival').innerText = `--:--`;
+                document.getElementById('display-bus').innerText = `--`;
+                document.getElementById('driver-name-display').innerText = `Select Route`;
+                document.getElementById('driver-phone-display').innerText = `to load driver profile`;
+                document.getElementById('helper-name-display').innerText = `--`;
+                document.getElementById('helper-phone-display').innerText = `--`;
+                document.getElementById('call-helper-btn').style.display = 'none';
+            }
+        });
+
+        function startTracking() {
+            if (!navigator.geolocation) {
+                alert("GPS not supported on this device.");
+                return;
+            }
+            const selectedRoute = document.getElementById('routeSelect').value;
+            if (!selectedRoute) {
+                alert("Please select a route first.");
+                return;
+            }
+            
+            document.getElementById('startBtn').innerText = "BROADCASTING";
+            document.getElementById('startBtn').style.background = "#10b981";
+            document.getElementById('routeSelect').disabled = true;
+            document.getElementById('startBtn').disabled = true;
+
+            watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const driverLatLng = L.latLng(lat, lng);
+
+                    socket.emit('send-location', { 
+                        lat, lng, routeId: selectedRoute, token: driverToken 
+                    });
+
+                    if (!driverMarker) {
+                        driverMarker = L.marker(driverLatLng, { icon: busIcon }).addTo(map);
+                        map.setView(driverLatLng, 15);
+                    } else {
+                        driverMarker.setLatLng(driverLatLng);
+                    }
+                },
+                (error) => { console.error("GPS Error:", error); },
+                { enableHighAccuracy: true }
+            );
+        }
+    </script>
+</body>
+</html>

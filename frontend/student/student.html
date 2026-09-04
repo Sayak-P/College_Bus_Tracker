@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Bus Tracker - Student</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.css" />
+    <link rel="stylesheet" href="../shared.css">
+    <style>
+
+        body { overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* App Layout */
+        .app-container { display: flex; flex: 1; position: relative; }
+        
+        #map { flex: 1; z-index: 1; background: #0b0e14; }
+
+        /* NEW HORIZONTAL TOP HUD */
+        #top-hud {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 1000px; background: rgba(18, 22, 30, 0.85); backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 32px; z-index: 1000; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            color: #fff;
+        }
+
+        .hud-left { display: flex; flex-direction: column; gap: 4px; }
+        .hud-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        #hud-route { margin: 0; font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+        
+        .hud-center { position: relative; flex: 1; max-width: 400px; margin: 0 24px; }
+        .search-wrapper { 
+            display: flex; align-items: center; background: rgba(0,0,0,0.3);
+            border-radius: 30px; padding: 10px 16px; border: 1px solid rgba(255,255,255,0.05); width: 100%; box-sizing: border-box;
+        }
+        .search-wrapper svg { color: var(--text-muted); margin-right: 12px; flex-shrink: 0; }
+        .search-wrapper input {
+            border: none; background: transparent; color: #fff; font-size: 13px;
+            width: 100%; padding: 0; outline: none; margin: 0;
+        }
+        .search-wrapper input::placeholder { color: var(--text-muted); }
+
+        #suggestions-list {
+            position: absolute; width: 100%; background: var(--surface-color);
+            border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            max-height: 200px; overflow-y: auto; z-index: 1001; display: none;
+            border: 1px solid var(--border-color); top: calc(100% + 5px);
+        }
+        .suggestion-item { padding: 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #cbd5e1; }
+        .suggestion-item:hover { background: rgba(255,255,255,0.05); color: var(--accent-gold); }
+
+        .hud-right { display: flex; align-items: center; gap: 32px; }
+        .hud-stat { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+        #hud-scheduled { font-size: 16px; font-weight: 600; color: #fff; }
+        
+        .arrival-stat .hud-label { color: var(--accent-gold); }
+        #hud-eta { font-size: 24px; font-weight: 800; color: var(--accent-gold); }
+        #hud-eta small { font-size: 14px; font-weight: 600; }
+
+        .leaflet-routing-container { display: none !important; }
+        
+        /* Floating Utility Elements */
+        #status-update, #crowd-meter, #crowd-text {
+            position: absolute; z-index: 2000;
+            top: 100px; left: 20px; background: rgba(11, 14, 20, 0.9);
+            padding: 12px 16px; border-radius: 12px; color: #fff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            font-size: 13px; max-width: 300px;
+        }
+        
+        /* --- CUSTOM MAP MARKERS --- */
+        .bus-icon {
+            font-size: 18px; text-align: center; line-height: 34px;
+            width: 34px !important; height: 34px !important;
+            border-radius: 50%; background-color: var(--accent-gold); color: #000;
+            border: 2px solid #000; box-shadow: 0 0 15px rgba(252, 211, 77, 0.5);
+            margin-left: -17px !important; margin-top: -17px !important;
+        }
+
+        .user-icon {
+            font-size: 14px; text-align: center; line-height: 24px;
+            width: 24px !important; height: 24px !important;
+            border-radius: 50%; background-color: #fff; color: #000;
+            border: 2px solid #000; box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            margin-left: -12px !important; margin-top: -12px !important;
+        }
+
+        .stop-icon {
+            font-size: 18px; text-align: center; line-height: 32px;
+            width: 32px !important; height: 32px !important;
+            border-radius: 50%; background-color: #4ade80; color: #000;
+            border: 2px solid #000; box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+            margin-left: -16px !important; margin-top: -16px !important;
+        }
+
+        .selected-stop-icon {
+            font-size: 20px; text-align: center; line-height: 40px;
+            width: 40px !important; height: 40px !important;
+            border-radius: 50%; background-color: var(--accent-gold); color: #000;
+            border: 3px solid #000; box-shadow: 0 0 20px rgba(252, 211, 77, 0.8);
+            margin-left: -20px !important; margin-top: -20px !important;
+        }
+
+        .college-icon {
+            font-size: 18px; text-align: center; line-height: 40px;
+            width: 40px !important; height: 40px !important;
+            border-radius: 8px; background-color: var(--surface-color); color: var(--accent-gold);
+            border: 1px solid var(--accent-gold); box-shadow: 0 0 15px rgba(252, 211, 77, 0.3);
+            margin-left: -20px !important; margin-top: -20px !important;
+        }
+    
+        /* Light Mode Updates for HUD */
+        body.light-mode #top-hud { background: rgba(255, 255, 255, 0.9); box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
+        body.light-mode #hud-route, body.light-mode #hud-scheduled { color: #000; }
+        body.light-mode .search-wrapper { background: #f8fafc; border-color: rgba(0,0,0,0.1); }
+        body.light-mode .search-wrapper input { color: #000; }
+        body.light-mode .suggestion-item { color: #000; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        body.light-mode .suggestion-item:hover { background: rgba(0,0,0,0.05); }
+        body.light-mode #suggestions-list { background: #fff; border-color: #cbd5e1; }
+        
+        /* Dropdown Options Styling */
+        #stand-select option { background-color: #1a1e29; color: #fff; }
+        body.light-mode #stand-select option { background-color: #fff; color: #000; }
+
+    </style>
+</head>
+<body>
+    <script>if (localStorage.getItem("theme") === "light") document.body.classList.add("light-mode");</script>
+
+    <nav>
+        <div class="logo">CampusFlow</div>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="#" class="active">Tracking</a>
+            <a href="routes.html">Routes</a>
+            <a href="nearby.html">Nearby</a>
+            <a href="arrivals.html">Arrivals</a>
+        </div>
+        <div class="nav-actions" id="nav-actions">
+            <!-- Auth injected via JS -->
+        </div>
+    </nav>
+    <script>
+        // Auth check for student pages
+        if (!localStorage.getItem('studentToken')) {
+            window.location.href = '../index.html';
+        } else {
+            document.addEventListener('DOMContentLoaded', () => {
+                const navActions = document.getElementById('nav-actions');
+                navActions.innerHTML = `
+                    <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">${document.body.classList.contains('light-mode') ? '🌙' : '☀️'}</button>
+                    <a href="#" class="btn-nav-gold" style="background: var(--danger); color: #fff; padding: 8px 16px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 700;" onclick="logoutHandler(event)">Logout</a>
+                `;
+            });
+        }
+        function logoutHandler(e) {
+            e.preventDefault();
+            localStorage.removeItem('studentToken');
+            localStorage.removeItem('studentName');
+            localStorage.removeItem('studentReg');
+            localStorage.removeItem('studentAddress');
+            window.location.href = '../index.html';
+        }
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            document.getElementById('theme-btn').innerText = isLight ? '🌙' : '☀️';
+        }
+    </script>
+    <div class="app-container">
+        <div id="top-hud">
+            <div class="hud-left">
+                <span class="hud-label">LIVE TRACKING</span>
+                <h2 id="hud-route">Select a Stop</h2>
+            </div>
+            
+            <div class="hud-center" style="display: flex; gap: 8px; position: relative;">
+                <div class="search-wrapper" style="flex: 1;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="stand-search" placeholder="Search for a bus stand..." autocomplete="off">
+                </div>
+                <button id="locate-btn" style="background: var(--accent-gold); color: #000; border: none; padding: 0 16px; border-radius: 30px; font-weight: 700; font-size: 11px; cursor: pointer; white-space: nowrap;">📍 Auto-Locate</button>
+                <div id="suggestions-list" style="top: 100%; margin-top: 8px;"></div>
+            </div>
+
+            <div class="hud-right">
+                <div class="hud-stat">
+                    <span class="hud-label">SCHEDULED</span>
+                    <span class="hud-val" id="hud-scheduled">--:--</span>
+                </div>
+                <div class="hud-stat arrival-stat">
+                    <span class="hud-label">ESTIMATED ARRIVAL</span>
+                    <div class="hud-arrival-val" id="hud-eta">-- <small>mins</small></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hidden utility elements for backwards-API compatibility -->
+        <input type="hidden" id="pincode-input" value="751030">
+        <button id="confirm-btn" style="display:none;"></button>
+        <div id="status-update" style="display:none;"></div>
+        <div id="crowd-meter" style="display:none;"><div id="crowd-bar"></div></div>
+        <div id="crowd-text" style="display:none;"></div>
+
+        <div id="map"></div>
+        <button id="toggle-stops-btn" style="position: absolute; bottom: 30px; right: 30px; z-index: 2000; background: var(--accent-gold); color: #000; border: none; padding: 12px 24px; border-radius: 30px; font-weight: 800; font-size: 13px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; transition: all 0.3s;">
+            👁️ Show All Stands
+        </button>
+    </div>
+
+    <script src="../config.js"></script>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.js"></script>
+    
+    <script>
+        window.onload = () => {
+            // Pointing Socket.io to specific backend port using config
+            const socket = io(API_BASE_URL);
+            const urlParams = new URLSearchParams(window.location.search);
+            const studentId = urlParams.get('id') || "Student";
+            
+            const map = L.map('map').setView([20.2961, 85.8245], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Define Custom Icons
+            const busIcon = L.divIcon({ html: '🚌', className: 'bus-icon', iconSize: [40, 40] });
+            const userIcon = L.divIcon({ html: '🧍', className: 'user-icon', iconSize: [30, 30] });
+            const stopIcon = L.divIcon({ html: '🚏', className: 'stop-icon', iconSize: [30, 30] });
+            const collegeIcon = L.divIcon({ html: '🎓', className: 'college-icon', iconSize: [40, 40] });
+
+            // Highlight College Area Outline
+            const collegeLocation = L.latLng(20.2496, 85.8002); 
+            const campusOutline = [
+                [20.2520, 85.7980], // NW Corner
+                [20.2520, 85.8030], // NE Corner
+                [20.2475, 85.8030], // SE Corner
+                [20.2450, 85.8010], // S Point
+                [20.2475, 85.7980]  // SW Corner
+            ];
+            L.polygon(campusOutline, {
+                color: '#ca8a04',
+                weight: 4,
+                fillColor: '#ca8a04',
+                fillOpacity: 0.1,
+                dashArray: '5, 5'
+            }).addTo(map);
+
+            L.marker(collegeLocation, { icon: collegeIcon }).addTo(map).bindPopup('<b>ITER Campus</b>');
+
+            let busStands = [];
+            let userPin, standPin, routeControl, busRouteControl, busMarker;
+            let selectedStand = null;
+            let myAssignedRoute = urlParams.get('route') || null; 
+            
+            let allStopsLayer = L.layerGroup();
+            let nearbyStopsLayer = L.layerGroup().addTo(map);
+            let showingAllStops = false;
+            
+            const selectedStopIcon = L.divIcon({ html: '📍', className: 'selected-stop-icon', iconSize: [40, 40] });
+
+            const toggleBtn = document.getElementById('toggle-stops-btn');
+            toggleBtn.addEventListener('click', () => {
+                showingAllStops = !showingAllStops;
+                if (showingAllStops) {
+                    map.addLayer(allStopsLayer);
+                    map.removeLayer(nearbyStopsLayer);
+                    toggleBtn.innerHTML = "🙈 Hide All Stands";
+                    toggleBtn.style.background = "#fff";
+                } else {
+                    map.removeLayer(allStopsLayer);
+                    map.addLayer(nearbyStopsLayer);
+                    toggleBtn.innerHTML = "👁️ Show All Stands";
+                    toggleBtn.style.background = "var(--accent-gold)";
+                }
+            }); 
+
+            // Track live route from URL param automatically
+            if(myAssignedRoute) {
+                document.getElementById('hud-route').innerText = `Tracking: ${myAssignedRoute}`;
+                // Fetch route details to display driver/bus info
+                fetch(`${API_BASE_URL}/api/routes`)
+                    .then(response => response.json())
+                    .then(routes => {
+                        const matchedRoute = routes.find(r => r.routeId === myAssignedRoute);
+                        if (matchedRoute) {
+                            document.getElementById('hud-scheduled').innerText = matchedRoute.arrivalAtIter;
+                            const driverName = matchedRoute.driver ? matchedRoute.driver.name : "Unknown";
+                            const driverPhone = matchedRoute.driver ? matchedRoute.driver.phone : "";
+                            const conductorName = matchedRoute.conductor ? matchedRoute.conductor.name : "Unknown";
+                            const conductorPhone = matchedRoute.conductor ? matchedRoute.conductor.phone : "";
+                            
+                            const driverInfoHTML = `
+                                <div style="margin-top: 10px; padding: 12px; background: rgba(252, 211, 77, 0.1); border-radius: 12px; font-size: 11px; border: 1px solid rgba(252, 211, 77, 0.2); color: #fff;">
+                                    <b style="color: var(--accent-gold);">Bus: ${matchedRoute.busNumber}</b> | Arrival: ${matchedRoute.arrivalAtIter}<br>
+                                    <span style="opacity:0.8;">👨‍✈️ Driver: ${driverName} (${driverPhone})</span><br>
+                                    <span style="opacity:0.8;">🎫 Cond: ${conductorName} (${conductorPhone})</span>
+                                </div>
+                            `;
+                            const statusUpdate = document.getElementById('status-update');
+                            statusUpdate.style.display = 'block';
+                            statusUpdate.innerHTML = `<br><span style="color:var(--accent-gold); font-weight:600;">🚌 Tracking ${myAssignedRoute}...</span>${driverInfoHTML}`;
+                        }
+                    })
+                    .catch(err => console.error("Error loading route details:", err));
+            }
+
+            // Fetching stops directly from the backend API url
+            fetch(`${API_BASE_URL}/api/stops`)
+                .then(response => response.json())
+                .then(data => {
+                    // Sort alphabetically
+                    busStands = data.sort((a, b) => a.name.localeCompare(b.name));
+                    console.log(`✅ Loaded ${busStands.length} stops from MongoDB!`);
+                    
+                    // Add stops to the allStopsLayer
+                    busStands.forEach((stand) => {
+                        const marker = L.marker([stand.lat, stand.lng], { icon: stopIcon })
+                         .bindPopup(`<b>${stand.name}</b>`);
+                        allStopsLayer.addLayer(marker);
+                    });
+                })
+                .catch(error => console.error("Error loading bus stops:", error));
+
+            const standSearch = document.getElementById('stand-search');
+            const suggestionsList = document.getElementById('suggestions-list');
+
+            // Search filtering for bus stands
+            standSearch.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                suggestionsList.innerHTML = '';
+                
+                if (query.length === 0) {
+                    suggestionsList.style.display = 'none';
+                    return;
+                }
+
+                const filtered = busStands.filter(s => s.name.toLowerCase().includes(query));
+                
+                if (filtered.length > 0) {
+                    suggestionsList.style.display = 'block';
+                    filtered.forEach(stand => {
+                        const div = document.createElement('div');
+                        div.className = 'suggestion-item';
+                        div.innerHTML = `🚏 ${stand.name}`;
+                        div.onclick = () => {
+                            standSearch.value = stand.name;
+                            suggestionsList.style.display = 'none';
+                            handleUserLocation({ lat: stand.lat, lng: stand.lng });
+                            map.setView([stand.lat, stand.lng], 15);
+                        };
+                        suggestionsList.appendChild(div);
+                    });
+                } else {
+                    suggestionsList.style.display = 'block';
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.style.color = '#ef4444';
+                    div.innerHTML = `No bus stands found for "${query}"`;
+                    suggestionsList.appendChild(div);
+                }
+            });
+            
+            // Close suggestions when clicking outside
+            document.addEventListener('click', (e) => {
+                if(e.target !== standSearch && e.target !== suggestionsList) {
+                    suggestionsList.style.display = 'none';
+                }
+            });
+
+            // Focus shows all if empty
+            standSearch.addEventListener('focus', () => {
+                if (standSearch.value === '') {
+                    suggestionsList.innerHTML = '';
+                    suggestionsList.style.display = 'block';
+                    busStands.forEach(stand => {
+                        const div = document.createElement('div');
+                        div.className = 'suggestion-item';
+                        div.innerHTML = `🚏 ${stand.name}`;
+                        div.onclick = () => {
+                            standSearch.value = stand.name;
+                            suggestionsList.style.display = 'none';
+                            handleUserLocation({ lat: stand.lat, lng: stand.lng });
+                            map.setView([stand.lat, stand.lng], 15);
+                        };
+                        suggestionsList.appendChild(div);
+                    });
+                }
+            });
+
+            // --- CLICK THE MAP TO DROP A PIN ---
+            map.on('click', function(e) {
+                standSearch.value = "📍 Custom Map Location";
+                document.getElementById('pincode-input').value = "";
+                document.getElementById('status-update').style.display = 'block';
+                handleUserLocation(e.latlng);
+            });
+
+            document.getElementById('locate-btn').addEventListener('click', () => {
+                if (navigator.geolocation) {
+                    const statusBox = document.getElementById('status-update');
+                    statusBox.style.display = 'block';
+                    statusBox.innerHTML = "📍 Getting your location...";
+                    
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const latlng = { lat: position.coords.latitude, lng: position.coords.longitude };
+                            handleUserLocation(latlng);
+                            map.setView([latlng.lat, latlng.lng], 15);
+                            
+                            // Update input if a stand was selected
+                            if (selectedStand) {
+                                document.getElementById('stand-search').value = selectedStand.name;
+                            }
+                            
+                            setTimeout(() => {
+                                if(statusBox.innerHTML.includes("Getting your location")) {
+                                    statusBox.style.display = 'none';
+                                }
+                            }, 2000);
+                        },
+                        (error) => {
+                            alert("Unable to retrieve your location. Please select a stand manually.");
+                            statusBox.style.display = 'none';
+                        },
+                        { enableHighAccuracy: true }
+                    );
+                } else {
+                    alert("Geolocation is not supported by your browser.");
+                }
+            });
+
+            function handleUserLocation(latlng) {
+                if (busStands.length === 0) return;
+
+                if (userPin) map.removeLayer(userPin);
+                if (standPin) map.removeLayer(standPin);
+                if (routeControl) map.removeControl(routeControl);
+                if (busRouteControl) map.removeControl(busRouteControl); 
+
+                // Set User Marker
+                userPin = L.marker([latlng.lat, latlng.lng], { icon: userIcon }).addTo(map).bindPopup('Your Pickup Point').openPopup();
+
+                busStands.forEach(stand => {
+                    stand.distance = map.distance([latlng.lat, latlng.lng], [stand.lat, stand.lng]);
+                });
+                
+                const sortedStops = [...busStands].sort((a, b) => a.distance - b.distance);
+                selectedStand = sortedStops[0];
+                const minDistance = selectedStand.distance;
+
+                // Update nearbyStopsLayer with top 5 nearest stands (excluding the selected one)
+                nearbyStopsLayer.clearLayers();
+                sortedStops.slice(0, 6).forEach(stand => {
+                    if(stand.name !== selectedStand.name) {
+                        L.marker([stand.lat, stand.lng], { icon: stopIcon })
+                         .addTo(nearbyStopsLayer)
+                         .bindPopup(`<b>${stand.name}</b>`);
+                    }
+                });
+
+                // Set Nearest Stop Marker (Highlighted)
+                const standLatLng = L.latLng(selectedStand.lat, selectedStand.lng);
+                standPin = L.marker(standLatLng, { icon: selectedStopIcon }).addTo(map).bindPopup(`<b>Assigned Stop: ${selectedStand.name}</b>`).openPopup();
+
+                // --- 1. User Walking Path (Grey Dots) ---
+                routeControl = L.Routing.control({
+                    waypoints: [L.latLng(latlng.lat, latlng.lng), standLatLng],
+                    routeWhileDragging: false,
+                    addWaypoints: false,
+                    show: false,
+                    createMarker: function() { return null; },
+                    lineOptions: { 
+                        styles: [
+                            {color: '#ffffff', opacity: 0.9, weight: 7},
+                            {color: '#6b7280', opacity: 1, weight: 4, dashArray: '5, 8'} 
+                        ] 
+                    }
+                }).addTo(map);
+
+                // --- 2. Bus Driving Path (Solid Golden) ---
+                busRouteControl = L.Routing.control({
+                    waypoints: [standLatLng, collegeLocation],
+                    routeWhileDragging: false,
+                    addWaypoints: false,
+                    show: false,
+                    createMarker: function() { return null; },
+                    lineOptions: { 
+                        styles: [
+                            {color: '#fcd34d', opacity: 0.8, weight: 5}
+                        ] 
+                    }
+                }).addTo(map);
+
+                socket.emit('set-pickup', { 
+                    lat: standLatLng.lat, 
+                    lng: standLatLng.lng, 
+                    stopName: selectedStand.name, 
+                    studentId: studentId 
+                });
+                
+                document.getElementById('status-update').innerHTML = `
+                    <b style="color: #3b82f6;">✔ SUCCESS</b><br>
+                    Assigned Stop: <b>${selectedStand.name}</b><br>
+                    Walk distance: <b>${Math.round(minDistance)} meters</b>
+                `;
+            }
+
+            socket.on('bus-allocated', (data) => {
+                myAssignedRoute = data.routeId;
+                document.getElementById('hud-route').innerText = `Route Allotted: ${data.routeId}`;
+                
+                let driverInfoHTML = '';
+                if (data.driverDetails && data.driverDetails.driverName) {
+                    document.getElementById('hud-scheduled').innerText = data.driverDetails.arrivalTime;
+                    driverInfoHTML = `
+                        <div style="margin-top: 10px; padding: 12px; background: rgba(252, 211, 77, 0.1); border-radius: 12px; font-size: 11px; border: 1px solid rgba(252, 211, 77, 0.2); color: #fff;">
+                            <b style="color: var(--accent-gold);">Bus: ${data.driverDetails.busNumber}</b> | Arrival: ${data.driverDetails.arrivalTime}<br>
+                            <span style="opacity:0.8;">👨‍✈️ Driver: ${data.driverDetails.driverName} (${data.driverDetails.driverPhone})</span><br>
+                            <span style="opacity:0.8;">🎫 Cond: ${data.driverDetails.conductorName} (${data.driverDetails.conductorPhone})</span>
+                        </div>
+                    `;
+                }
+
+                document.getElementById('status-update').innerHTML = `<br><span style="color:var(--accent-gold); font-weight:600;">🚌 Tracking ${data.routeId}...</span>${driverInfoHTML}`;
+                
+                const meter = document.getElementById('crowd-meter');
+                const bar = document.getElementById('crowd-bar');
+                const txt = document.getElementById('crowd-text');
+
+                meter.style.display = 'block';
+                txt.style.display = 'block';
+
+                let count = data.crowdCount || 1;
+                let percentage = Math.min((count / 20) * 100, 100);
+                let color = "#10b981"; 
+                if (count > 5) color = "#f59e0b"; 
+                if (count > 15) color = "#ef4444"; 
+
+                bar.style.width = percentage + "%";
+                bar.style.background = color;
+                txt.innerText = `CROWD DENSITY: ${count} waiting`;
+                txt.style.color = color;
+            });
+
+            socket.on('receive-location', (data) => {
+                const { lat, lng, routeId } = data;
+                if (myAssignedRoute && routeId === myAssignedRoute) {
+                    if (!busMarker) {
+                        busMarker = L.marker([lat, lng], {icon: busIcon}).addTo(map);
+                    } else {
+                        busMarker.setLatLng([lat, lng]);
+                    }
+                    busMarker.bindPopup(`<b>${routeId}</b>`).openPopup();
+
+                    if (selectedStand) {
+                        const dist = map.distance([lat, lng], [selectedStand.lat, selectedStand.lng]);
+                        const eta = Math.ceil(dist / 400);
+
+                        if (dist < 100) {
+                            document.getElementById('hud-eta').innerHTML = `0 <small>mins</small>`;
+                            document.getElementById('hud-route').innerHTML = `<span style="color:#ef4444">BUS ARRIVING!</span>`;
+                        } else {
+                            document.getElementById('hud-eta').innerHTML = `${eta} <small>mins</small>`;
+                        }
+                    }
+                }
+            });
+
+            function debounce(func, timeout = 800) {
+                let timer;
+                return (...args) => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => { func.apply(this, args); }, timeout);
+                };
+            }
+        };
+    </script>
+</body>
+</html>
