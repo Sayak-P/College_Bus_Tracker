@@ -76,8 +76,9 @@ app.use(cors({
     credentials: true
 }));
 
-// Parse JSON body first, then serve static files
+// Parse JSON and Form URL-encoded bodies first, then serve static files
 app.use(express.json({ limit: '10kb' })); // limit body size
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // MongoDB injection sanitization — strips $ and . from input
 app.use(mongoSanitize());
@@ -334,6 +335,81 @@ app.post('/auth/google/login', async (req, res) => {
     } catch (err) {
         console.error("Google Login Error:", err);
         res.status(500).json({ success: false, message: "Google verification failed" });
+    }
+});
+
+// Google Sign-In Redirect Callback (Rock-solid, popup-free)
+app.post('/auth/google/callback', async (req, res) => {
+    try {
+        const credential = req.body.credential;
+        if (!credential) {
+            return res.status(400).send("<h3>Google credential missing. Please try logging in again.</h3>");
+        }
+
+        const ticket = await googleClient.verifyIdToken({
+            idToken: credential,
+            audience: GOOGLE_CLIENT_ID
+        });
+        const payload = ticket.getPayload();
+        const email = payload.email;
+        const name = payload.name || "Student";
+
+        let student = await Student.findOne({ email });
+        if (!student) {
+            const fallbackReg = 'ITER' + Math.floor(100000 + Math.random() * 900000);
+            student = new Student({
+                name,
+                regNumber: fallbackReg,
+                address: 'ITER Campus, Bhubaneswar',
+                email,
+                googleId: payload.sub,
+                password: 'google-oauth-' + Date.now()
+            });
+            await student.save();
+        }
+
+        const token = jwt.sign({ id: student._id, regNumber: student.regNumber, role: 'student' }, JWT_SECRET, { expiresIn: '24h' });
+
+        res.send(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Authenticating with CampusFlow...</title>
+                <style>
+                    body {
+                        background: #0b0e14; color: #fcd34d; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        display: flex; flex-direction: column; align-items: center; justify-content: center;
+                        height: 100vh; margin: 0; text-align: center;
+                    }
+                    .loader {
+                        border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #fcd34d;
+                        border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite;
+                        margin-bottom: 20px;
+                    }
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                </style>
+            </head>
+            <body>
+                <div class="loader"></div>
+                <h2 style="margin: 0 0 8px 0; color: #fff;">Signing you in, ${name}...</h2>
+                <p style="margin: 0; color: #94a3b8; font-size: 14px;">Redirecting to your live student tracking dashboard...</p>
+                <script>
+                    localStorage.setItem('studentToken', '${token}');
+                    localStorage.setItem('studentName', '${name.replace(/'/g, "\\'")}');
+                    localStorage.setItem('studentReg', '${student.regNumber}');
+                    localStorage.setItem('studentAddress', '${(student.address || "ITER Campus").replace(/'/g, "\\'")}');
+                    setTimeout(() => {
+                        window.location.href = '/student/student.html?id=${student.regNumber}';
+                    }, 500);
+                </script>
+            </body>
+            </html>
+        `);
+    } catch (err) {
+        console.error("Google Callback Error:", err);
+        res.status(500).send("<h3>Google Authentication Failed. Please return to the homepage and try again.</h3>");
     }
 });
 

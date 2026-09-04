@@ -1142,11 +1142,13 @@
         }
 
         // Initialize Google Sign-In
+        // Initialize Google Sign-In in Redirect Mode (100% reliable, no popup blockers)
         window.addEventListener('load', () => {
             if (typeof google !== 'undefined' && google.accounts) {
                 google.accounts.id.initialize({
                     client_id: GOOGLE_CLIENT_ID,
-                    callback: handleGoogleResponse
+                    ux_mode: 'redirect',
+                    login_uri: `${window.location.origin}/auth/google/callback`
                 });
                 google.accounts.id.renderButton(
                     document.getElementById('google-signin-btn'),
