@@ -32,7 +32,8 @@ function mongoSanitize() {
     };
 }
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '673741953853-ldcf9bde54uiv5snch47redg4284942i.apps.googleusercontent.com';
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const app = express();
 const server = http.createServer(app);
@@ -57,7 +58,8 @@ const io = new Server(server, {
 
 // Helmet — sets secure HTTP headers
 app.use(helmet({
-    contentSecurityPolicy: false // Disabled so Leaflet, Google fonts, etc. load fine
+    contentSecurityPolicy: false, // Disabled so Leaflet, Google fonts, etc. load fine
+    crossOriginOpenerPolicy: false // Allows Google Sign-In popup to communicate back with window.opener
 }));
 
 // CORS — restricted to allowed origins
@@ -273,7 +275,7 @@ app.post('/auth/google/register', async (req, res) => {
 
         const ticket = await googleClient.verifyIdToken({
             idToken: credential,
-            audience: process.env.GOOGLE_CLIENT_ID
+            audience: GOOGLE_CLIENT_ID
         });
         const payload = ticket.getPayload();
         const email = payload.email;
@@ -317,7 +319,7 @@ app.post('/auth/google/login', async (req, res) => {
 
         const ticket = await googleClient.verifyIdToken({
             idToken: credential,
-            audience: process.env.GOOGLE_CLIENT_ID
+            audience: GOOGLE_CLIENT_ID
         });
         const payload = ticket.getPayload();
         const email = payload.email;
