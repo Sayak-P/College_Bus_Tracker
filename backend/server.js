@@ -65,10 +65,11 @@ app.use(helmet({
 // CORS — restricted to allowed origins
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow requests with no origin (server-to-server, curl, etc.)
-        if (!origin || allowedOrigins.includes(origin)) {
+        // Allow requests with no origin (server-to-server, curl, etc.), Google Auth, and Render
+        if (!origin || origin === 'https://accounts.google.com' || origin.includes('onrender.com') || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
+            console.warn('CORS Blocked:', origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
