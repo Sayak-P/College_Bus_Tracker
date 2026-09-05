@@ -442,7 +442,7 @@ app.get('/api/routes', async (req, res) => {
 
 // Health check endpoint (useful for deployment platforms)
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    res.json({ status: 'ok', version: 'v2', timestamp: new Date().toISOString() });
 });
 
 // ==========================================
