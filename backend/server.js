@@ -36,6 +36,7 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '673741953853-ldcf9bde5
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (Render/Cloudflare) to populate req.ip correctly
 const server = http.createServer(app);
 
 // ==========================================
@@ -107,7 +108,7 @@ const apiLimiter = rateLimit({
 app.use('/api/login', authLimiter);
 app.use('/api/student/login', authLimiter);
 app.use('/api/student/register', authLimiter);
-app.use('/auth/google', authLimiter);
+// Bypassed rate limiting for /auth/google to prevent proxy IP issues on Render
 app.use('/api/', apiLimiter);
 
 // ==========================================
@@ -540,7 +541,14 @@ io.on('connection', (socket) => {
 // ==========================================
 // START SERVER
 // ==========================================
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
+
+// Global error handler to capture unhandled middleware errors
+app.use((err, req, res, next) => {
+    console.error("GLOBAL ERROR HANDLER CAUGHT:", err);
+    res.status(500).send("GLOBAL ERROR CAUGHT: " + err.message + "\n" + err.stack);
+});
+
 server.listen(PORT, () => {
     console.log(`✅ CampusFlow server running on port ${PORT}`);
     console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
