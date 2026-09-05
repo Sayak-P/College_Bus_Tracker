@@ -63,16 +63,11 @@ app.use(helmet({
     crossOriginOpenerPolicy: false // Allows Google Sign-In popup to communicate back with window.opener
 }));
 
-// CORS — restricted to allowed origins
+// CORS — allow all origins dynamically to support cross-site redirects and credentials
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow requests with no origin, 'null' origin (cross-site POST redirects), Google Auth, and Render
-        if (!origin || origin === 'null' || origin === 'https://accounts.google.com' || origin.includes('onrender.com') || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            console.warn('CORS Blocked:', origin);
-            callback(new Error('Not allowed by CORS'));
-        }
+        // Reflect whatever origin is requested to allow everything
+        callback(null, true);
     },
     methods: ['GET', 'POST'],
     credentials: true
@@ -442,7 +437,7 @@ app.get('/api/routes', async (req, res) => {
 
 // Health check endpoint (useful for deployment platforms)
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', version: 'v2', timestamp: new Date().toISOString() });
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // ==========================================
