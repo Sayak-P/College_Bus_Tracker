@@ -7,7 +7,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
-const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 require('dotenv').config();
 
@@ -84,27 +83,8 @@ app.use(mongoSanitize());
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // ==========================================
-// RATE LIMITING
+// RATE LIMITING REMOVED TEMPORARILY TO FIX RENDER PROXY 500 ERRORS
 // ==========================================
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 15, // max 15 auth attempts per window
-    message: { success: false, message: 'Too many attempts. Please try again in 15 minutes.' },
-    standardHeaders: true,
-    legacyHeaders: false
-});
-
-const apiLimiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    max: 60, // 60 requests per minute
-    message: { success: false, message: 'Too many requests, slow down.' }
-});
-
-app.use('/api/login', authLimiter);
-app.use('/api/student/login', authLimiter);
-app.use('/api/student/register', authLimiter);
-// Bypassed rate limiting for /auth/google to prevent proxy IP issues on Render
-app.use('/api/', apiLimiter);
 
 // ==========================================
 // DATABASE CONNECTION
