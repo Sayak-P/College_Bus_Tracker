@@ -148,6 +148,21 @@ async function seedRoutes() {
 }
 seedRoutes();
 
+async function seedStops() {
+    try {
+        const count = await BusStop.countDocuments();
+        if (count === 0) {
+            const fs = require('fs');
+            const stopsData = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/stops.json'), 'utf8'));
+            await BusStop.insertMany(stopsData);
+            console.log(`✅ Seeded ${stopsData.length} bus stops into MongoDB`);
+        }
+    } catch (err) {
+        console.error("Error seeding stops:", err);
+    }
+}
+seedStops();
+
 // ==========================================
 // JWT AUTH MIDDLEWARE
 // ==========================================
